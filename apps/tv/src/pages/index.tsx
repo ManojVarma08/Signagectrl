@@ -379,6 +379,7 @@ export default function App() {
   const [selectedLayoutId, setSelectedLayoutId] = useState<string | null>(null);
   const [cells, setCells] = useState<any[]>([]);
   const [activeCell, setActiveCell] = useState(0);
+  const [userSelectedLayout, setUserSelectedLayout] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
   const [notif, setNotif] = useState<string | null>(null);
@@ -460,15 +461,21 @@ export default function App() {
           setTvStates(p => ({ ...p, [activeTVId]: data }));
 
           if (appRole === 'controller' && loggedInTVId === activeTVId) {
-            setSelectedLayoutId(data.layout_id || null);
-            setCells(data.cells || []);
+            // Only update layout if user hasn't manually selected one
+            if (!userSelectedLayout) {
+              setSelectedLayoutId(data.layout_id || null);
+              setCells(data.cells || []);
+            }
           }
         } else {
           setTvStates(p => ({ ...p, [activeTVId]: null }));
 
           if (appRole === 'controller' && loggedInTVId === activeTVId) {
-            setSelectedLayoutId(null);
-            setCells([]);
+            // Don't reset selectedLayoutId if user has selected one
+            if (!userSelectedLayout) {
+              setSelectedLayoutId(null);
+              setCells([]);
+            }
           }
         }
       } catch {}
@@ -477,13 +484,7 @@ export default function App() {
     poll();
     const t = setInterval(poll, 2000);
     return () => clearInterval(t);
-  }, [activeTVId, loggedInTVId, authUserId, appRole]);
-
-  // Debug selectedLayoutId changes
-  useEffect(() => {
-    console.log('selectedLayoutId changed to:', selectedLayoutId);
-    console.log('phoneView is:', phoneView);
-  }, [selectedLayoutId, phoneView]);
+  }, [activeTVId, loggedInTVId, authUserId, appRole, userSelectedLayout]);
 
   const selectRole = (role: 'tv' | 'controller') => {
     setAppRole(role);
@@ -511,6 +512,7 @@ export default function App() {
     setSideTab('phone');
     setPhoneView('home');
     setActiveCell(0);
+    setUserSelectedLayout(false); // Reset when switching TVs
 
     localStorage.setItem('signage_tv_id', tvId);
     localStorage.setItem('signage_app_role', 'controller');
@@ -546,6 +548,7 @@ export default function App() {
     setConnectedTV(null);
     setSelectedLayoutId(null);
     setCells([]);
+    setUserSelectedLayout(false);
   };
 
   const toast = (msg: string) => { setNotif(msg); setTimeout(() => setNotif(null), 3000); };
@@ -599,6 +602,7 @@ export default function App() {
       // Set up media state first
       console.log('Setting selectedLayoutId to:', layoutId);
       setSelectedLayoutId(layoutId);
+      setUserSelectedLayout(true);
       const empty = Array.from({ length: layout.cells }, () => ({ mediaUrl: null, mediaType: null }));
       setCells(empty);
       setActiveCell(0);
@@ -699,6 +703,15 @@ export default function App() {
   const selectedLayout = LAYOUTS.find(l => l.id === selectedLayoutId);
   const activeTVInfo = TV_LIST.find(t => t.id === activeTVId)!;
   const loggedInTV = TV_LIST.find(t => t.id === loggedInTVId)!;
+
+  // Debug selectedLayoutId changes
+  useEffect(() => {
+    console.log('selectedLayoutId changed to:', selectedLayoutId);
+    console.log('phoneView is:', phoneView);
+    console.log('cells length:', cells.length);
+    console.log('connectedTV:', connectedTV);
+    console.log('loggedInTV:', loggedInTV);
+  }, [selectedLayoutId, phoneView, cells, connectedTV, loggedInTV]);
 
   if (appRole === 'tv') {
     return (
