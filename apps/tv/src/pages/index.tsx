@@ -568,6 +568,11 @@ export default function App() {
     const targetTV = connectedTV || TV_LIST.find(t => t.id === loggedInTVId);
     if (!targetTV) return;
 
+    // Ensure connectedTV is set before transitioning to media view
+    if (!connectedTV) {
+      setConnectedTV(targetTV);
+    }
+
     setSelectedLayoutId(layoutId);
     const empty = Array.from({ length: layout.cells }, () => ({ mediaUrl: null, mediaType: null }));
     setCells(empty);
@@ -579,7 +584,8 @@ export default function App() {
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !connectedTV || !selectedLayoutId) return;
+    const targetTV = connectedTV || loggedInTV;
+    if (!file || !targetTV || !selectedLayoutId) return;
 
     const type = file.type.startsWith('video') ? 'video' : 'image';
     setUploading(true);
@@ -591,9 +597,9 @@ export default function App() {
       setUploadStatus('Publishing to TV...');
       const nextCells = cells.map((c, i) => i === activeCell ? { mediaUrl: publicUrl, mediaType: type } : c);
       setCells(nextCells);
-      await updateTV(connectedTV.id, selectedLayoutId, nextCells);
-      setActiveTVId(connectedTV.id);
-      toast(`Live on ${connectedTV.name} — Zone ${activeCell + 1}`);
+      await updateTV(targetTV.id, selectedLayoutId, nextCells);
+      setActiveTVId(targetTV.id);
+      toast(`Live on ${targetTV.name} — Zone ${activeCell + 1}`);
     } catch (err) {
       toast('Upload failed. Please try again.');
       console.error(err);
@@ -821,13 +827,13 @@ export default function App() {
                 </div>
               )}
 
-              {phoneView === 'layout' && connectedTV && (
+              {phoneView === 'layout' && (connectedTV || loggedInTV) && (
                 <div>
                   <button onClick={() => setPhoneView('home')} className="back-btn">← Back</button>
                   <div className="panel-header">
                     <TVIcon size="md" active live />
                     <div>
-                      <div style={{ color: '#0f172a', fontWeight: 900, fontSize: 18 }}>{connectedTV.name}</div>
+                      <div style={{ color: '#0f172a', fontWeight: 900, fontSize: 18 }}>{(connectedTV || loggedInTV).name}</div>
                       <div style={{ color: '#64748b', fontSize: 13 }}>Select a screen layout</div>
                     </div>
                   </div>
@@ -848,17 +854,17 @@ export default function App() {
                 </div>
               )}
 
-              {phoneView === 'media' && connectedTV && selectedLayout && (
+              {phoneView === 'media' && selectedLayout && (connectedTV || loggedInTV) && (
                 <div>
                   <div className="media-top-actions" style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
                     <button onClick={() => setPhoneView('layout')} className="back-btn">← Layout</button>
                     <button onClick={() => setPhoneView('home')} className="back-btn">Home</button>
-                    <button onClick={() => { setActiveTVId(connectedTV.id); setSideTab('tv'); }} className="view-tv-btn">View TV →</button>
+                    <button onClick={() => { setActiveTVId((connectedTV || loggedInTV).id); setSideTab('tv'); }} className="view-tv-btn">View TV →</button>
                   </div>
                   <div className="panel-header">
                     <TVIcon size="md" active live />
                     <div>
-                      <div style={{ color: '#0f172a', fontWeight: 900, fontSize: 18 }}>{connectedTV.name}</div>
+                      <div style={{ color: '#0f172a', fontWeight: 900, fontSize: 18 }}>{(connectedTV || loggedInTV).name}</div>
                       <div style={{ color: '#64748b', fontSize: 13 }}>{selectedLayout.name} · {cells.length} zones</div>
                     </div>
                   </div>
@@ -873,7 +879,7 @@ export default function App() {
                       </button>
                     ))}
                   </div>
-                  <div className="push-info">Publishing to <strong>{connectedTV.name} · Zone {activeCell + 1}</strong></div>
+                  <div className="push-info">Publishing to <strong>{(connectedTV || loggedInTV).name} · Zone {activeCell + 1}</strong></div>
                   {uploading ? (
                     <div className="upload-box">
                       <div style={{ fontSize: 16, color: '#2563eb', fontWeight: 900 }}>{uploadStatus}</div>
