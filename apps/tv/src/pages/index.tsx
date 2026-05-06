@@ -566,19 +566,31 @@ export default function App() {
   const applyLayout = async (layoutId: string) => {
     const layout = LAYOUTS.find(l => l.id === layoutId)!;
     const targetTV = connectedTV || TV_LIST.find(t => t.id === loggedInTVId);
-    if (!targetTV) return;
-
-    // Ensure connectedTV is set before transitioning to media view
-    if (!connectedTV) {
-      setConnectedTV(targetTV);
+    if (!targetTV) {
+      toast('Please select a TV first');
+      return;
     }
 
+    // Set up media state first
     setSelectedLayoutId(layoutId);
     const empty = Array.from({ length: layout.cells }, () => ({ mediaUrl: null, mediaType: null }));
     setCells(empty);
     setActiveCell(0);
-    await updateTV(targetTV.id, layoutId, empty);
-    toast(`Layout "${layout.name}" applied`);
+
+    // Set connected TV if not already set
+    setConnectedTV(targetTV);
+
+    // Save to database
+    try {
+      await updateTV(targetTV.id, layoutId, empty);
+      toast(`Layout "${layout.name}" applied`);
+    } catch (err) {
+      console.error('Failed to apply layout:', err);
+      toast('Failed to apply layout. Please try again.');
+      return;
+    }
+
+    // Navigate to media view last, after all state is prepared
     setPhoneView('media');
   };
 
@@ -854,7 +866,7 @@ export default function App() {
                 </div>
               )}
 
-              {phoneView === 'media' && selectedLayout && (connectedTV || loggedInTV) && (
+              {phoneView === 'media' && selectedLayout && (
                 <div>
                   <div className="media-top-actions" style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
                     <button onClick={() => setPhoneView('layout')} className="back-btn">← Layout</button>
@@ -904,6 +916,16 @@ export default function App() {
                       ))}
                     </>
                   )}
+                </div>
+              )}
+
+              {phoneView === 'media' && !selectedLayout && (
+                <div>
+                  <button onClick={() => setPhoneView('layout')} className="back-btn">← Back to Layout</button>
+                  <div style={{ padding: 30, textAlign: 'center', color: '#ef4444' }}>
+                    <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 10 }}>No Layout Selected</div>
+                    <div style={{ fontSize: 14, color: '#64748b' }}>Please select a layout first</div>
+                  </div>
                 </div>
               )}
             </div>
