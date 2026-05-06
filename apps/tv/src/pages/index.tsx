@@ -479,6 +479,12 @@ export default function App() {
     return () => clearInterval(t);
   }, [activeTVId, loggedInTVId, authUserId, appRole]);
 
+  // Debug selectedLayoutId changes
+  useEffect(() => {
+    console.log('selectedLayoutId changed to:', selectedLayoutId);
+    console.log('phoneView is:', phoneView);
+  }, [selectedLayoutId, phoneView]);
+
   const selectRole = (role: 'tv' | 'controller') => {
     setAppRole(role);
     localStorage.setItem('signage_app_role', role);
@@ -571,15 +577,27 @@ export default function App() {
   };
 
   const applyLayout = async (layoutId: string) => {
-    const layout = LAYOUTS.find(l => l.id === layoutId)!;
+    console.log('applyLayout called with:', layoutId);
+    const layout = LAYOUTS.find(l => l.id === layoutId);
+    console.log('Found layout:', layout);
+
     const targetTV = connectedTV || TV_LIST.find(t => t.id === loggedInTVId);
+    console.log('Target TV:', targetTV);
+
     if (!targetTV) {
       toast('Please select a TV first');
       return;
     }
 
+    if (!layout) {
+      console.error('Layout not found for ID:', layoutId);
+      toast('Invalid layout selected');
+      return;
+    }
+
     try {
       // Set up media state first
+      console.log('Setting selectedLayoutId to:', layoutId);
       setSelectedLayoutId(layoutId);
       const empty = Array.from({ length: layout.cells }, () => ({ mediaUrl: null, mediaType: null }));
       setCells(empty);
@@ -590,11 +608,12 @@ export default function App() {
 
       // Save to database (optimistic update - won't block)
       await updateTV(targetTV.id, layoutId, empty);
-      
+
       // Show success toast
       toast(`Layout "${layout.name}" applied`);
 
       // Navigate to media view immediately
+      console.log('Navigating to media view');
       setPhoneView('media');
     } catch (err) {
       console.error('Error applying layout:', err);
@@ -881,7 +900,7 @@ export default function App() {
                 </div>
               )}
 
-              {phoneView === 'media' && selectedLayout && (
+              {phoneView === 'media' && selectedLayoutId && (
                 <div>
                   <div className="media-top-actions" style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
                     <button onClick={() => setPhoneView('layout')} className="back-btn">← Layout</button>
@@ -892,7 +911,7 @@ export default function App() {
                     <TVIcon size="md" active live />
                     <div>
                       <div style={{ color: '#0f172a', fontWeight: 900, fontSize: 18 }}>{(connectedTV || loggedInTV).name}</div>
-                      <div style={{ color: '#64748b', fontSize: 13 }}>{selectedLayout.name} · {cells.length} zones</div>
+                      <div style={{ color: '#64748b', fontSize: 13 }}>{selectedLayout?.name || 'Layout'} · {cells.length} zones</div>
                     </div>
                   </div>
                   <div className="section-label">Select Zone</div>
@@ -934,7 +953,7 @@ export default function App() {
                 </div>
               )}
 
-              {phoneView === 'media' && !selectedLayout && (
+              {phoneView === 'media' && !selectedLayoutId && (
                 <div>
                   <button onClick={() => setPhoneView('layout')} className="back-btn">← Back to Layout</button>
                   <div style={{ padding: 30, textAlign: 'center', color: '#ef4444' }}>
