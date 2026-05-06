@@ -546,10 +546,11 @@ export default function App() {
 
   const updateTV = async (tvId: string, layoutId: string, newCells: any[]) => {
     if (!authUserId) {
-      toast('Please login again');
+      console.warn('No auth user ID - skipping database save');
       return;
     }
 
+    // Update UI immediately (optimistic update)
     setTvStates(p => ({
       ...p,
       [tvId]: {
@@ -560,7 +561,13 @@ export default function App() {
       },
     }));
 
-    await saveTVState(authUserId, tvId, layoutId, newCells);
+    // Save to database in the background, don't block UI
+    try {
+      await saveTVState(authUserId, tvId, layoutId, newCells);
+    } catch (err) {
+      console.error('Failed to save TV state to database:', err);
+      // Don't show error toast - this is a background operation
+    }
   };
 
   const applyLayout = async (layoutId: string) => {
@@ -571,27 +578,28 @@ export default function App() {
       return;
     }
 
-    // Set up media state first
-    setSelectedLayoutId(layoutId);
-    const empty = Array.from({ length: layout.cells }, () => ({ mediaUrl: null, mediaType: null }));
-    setCells(empty);
-    setActiveCell(0);
-
-    // Set connected TV if not already set
-    setConnectedTV(targetTV);
-
-    // Save to database
     try {
-      await updateTV(targetTV.id, layoutId, empty);
-      toast(`Layout "${layout.name}" applied`);
-    } catch (err) {
-      console.error('Failed to apply layout:', err);
-      toast('Failed to apply layout. Please try again.');
-      return;
-    }
+      // Set up media state first
+      setSelectedLayoutId(layoutId);
+      const empty = Array.from({ length: layout.cells }, () => ({ mediaUrl: null, mediaType: null }));
+      setCells(empty);
+      setActiveCell(0);
 
-    // Navigate to media view last, after all state is prepared
-    setPhoneView('media');
+      // Set connected TV if not already set
+      setConnectedTV(targetTV);
+
+      // Save to database (optimistic update - won't block)
+      await updateTV(targetTV.id, layoutId, empty);
+      
+      // Show success toast
+      toast(`Layout "${layout.name}" applied`);
+
+      // Navigate to media view immediately
+      setPhoneView('media');
+    } catch (err) {
+      console.error('Error applying layout:', err);
+      toast('Error applying layout');
+    }
   };
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -609,7 +617,14 @@ export default function App() {
       setUploadStatus('Publishing to TV...');
       const nextCells = cells.map((c, i) => i === activeCell ? { mediaUrl: publicUrl, mediaType: type } : c);
       setCells(nextCells);
-      await updateTV(targetTV.id, selectedLayoutId, nextCells);
+      
+      // Update UI immediately, save in background
+      if (authUserId) {
+        await updateTV(targetTV.id, selectedLayoutId, nextCells).catch(err => {
+          console.error('Failed to save to database:', err);
+        });
+      }
+      
       setActiveTVId(targetTV.id);
       toast(`Live on ${targetTV.name} — Zone ${activeCell + 1}`);
     } catch (err) {
