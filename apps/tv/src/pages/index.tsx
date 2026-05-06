@@ -386,28 +386,35 @@ export default function App() {
 
   useEffect(() => {
     let mounted = true;
+    let sessionResolved = false;
 
+    // Longer timeout for TV devices (10 seconds instead of 3)
     const fallbackTimer = setTimeout(() => {
-      if (mounted) {
+      if (mounted && !sessionResolved) {
+        sessionResolved = true;
         setIsAuthed(false);
         setAuthUserId(null);
         setAuthChecked(true);
+        console.warn('Auth check timeout - proceeding without session');
       }
-    }, 3000);
+    }, 10000);
 
     supabase.auth
       .getSession()
       .then(({ data }) => {
         if (!mounted) return;
-
+        
+        sessionResolved = true;
         clearTimeout(fallbackTimer);
         setIsAuthed(!!data.session);
         setAuthUserId(data.session?.user?.id || null);
         setAuthChecked(true);
       })
-      .catch(() => {
+      .catch((err) => {
         if (!mounted) return;
 
+        console.error('Auth session error:', err);
+        sessionResolved = true;
         clearTimeout(fallbackTimer);
         setIsAuthed(false);
         setAuthUserId(null);
@@ -598,7 +605,27 @@ export default function App() {
   };
 
   if (!authChecked) {
-    return <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 900, color: '#2563eb' }}>Loading...</div>;
+    return (
+      <div style={{ 
+        width: '100vw', 
+        height: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        fontFamily: 'Inter, system-ui, sans-serif', 
+        fontWeight: 900, 
+        color: '#2563eb',
+        background: 'linear-gradient(135deg, #f8fbff, #eef5ff)',
+        flexDirection: 'column',
+        gap: 20
+      }}>
+        <div style={{ fontSize: 32 }}>Loading...</div>
+        <div style={{ fontSize: 14, color: '#64748b' }}>Initializing Signage Control</div>
+        <div style={{ width: 200, height: 4, background: '#e2e8f0', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ height: '100%', background: '#2563eb', borderRadius: 2, animation: 'slideIn 1.5s ease-in-out infinite' }} />
+        </div>
+      </div>
+    );
   }
 
   if (!isAuthed) {
@@ -879,6 +906,8 @@ export default function App() {
       </main>
 
       <style>{`
+        @keyframes slideIn { 0%{width:0} 50%{width:100%} 100%{width:100%} }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body, #__next { width: 100%; min-height: 100%; }
         body { overflow: hidden; -webkit-font-smoothing: antialiased; }
