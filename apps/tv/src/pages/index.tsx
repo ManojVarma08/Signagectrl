@@ -66,12 +66,9 @@ async function getTVState(userId: string, tvId: string) {
 }
 
 async function saveTVState(userId: string, tvId: string, layoutId: string, cells: any[]) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/tv_states?on_conflict=user_id,tv_id`, {
+  await fetch(`${SUPABASE_URL}/rest/v1/tv_states`, {
     method: 'POST',
-    headers: {
-      ...sbHeaders,
-      Prefer: 'resolution=merge-duplicates',
-    },
+    headers: { ...sbHeaders, Prefer: 'resolution=merge-duplicates' },
     body: JSON.stringify({
       user_id: userId,
       tv_id: tvId,
@@ -80,32 +77,25 @@ async function saveTVState(userId: string, tvId: string, layoutId: string, cells
       updated_at: Date.now(),
     }),
   });
-
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Save TV state failed: ${errText}`);
-  }
 }
 
 async function uploadToSupabase(file: File): Promise<string> {
-  const ext = file.name.split('.').pop() || 'bin';
-  const cleanExt = ext.toLowerCase().replace(/[^a-z0-9]/g, '');
-  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${cleanExt}`;
+  const ext = file.name.split('.').pop();
+  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(filename, file, {
-      cacheControl: '3600',
-      upsert: true,
-      contentType: file.type || 'application/octet-stream',
-    });
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${filename}`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': file.type,
+      'x-upsert': 'true',
+    },
+    body: file,
+  });
 
-  if (error) {
-    throw new Error(error.message || 'Upload failed');
-  }
-
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(filename);
-  return data.publicUrl;
+  if (!res.ok) throw new Error('Upload failed');
+  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${filename}`;
 }
 
 // ── TV Icon ───────────────────────────────────────────────────
@@ -147,18 +137,12 @@ function AuthScreen({ onAuthSuccess }: { onAuthSuccess: () => void }) {
 
     try {
       if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: 'https://singage-tv.vercel.app',
-          },
-        });
+        const { error } = await supabase.auth.signUp({ email, password });
         if (error) {
           setMsg(error.message);
           return;
         }
-        setMsg('Account created. Confirmation email sent. Please check your inbox, confirm your email, then login.');
+        setMsg('Account created. Please login now.');
         setMode('login');
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -192,7 +176,7 @@ function AuthScreen({ onAuthSuccess }: { onAuthSuccess: () => void }) {
           <input type="password" placeholder="Password minimum 6 characters" value={password} onChange={e => setPassword(e.target.value)} style={{ width: '100%', padding: '14px 16px', borderRadius: 14, border: '1.5px solid #dbeafe', fontSize: 15, outline: 'none' }} />
 
           {msg && (
-            <div style={{ background: (msg.includes('created') || msg.includes('Confirmation email sent')) ? '#ecfdf5' : '#fef2f2', color: (msg.includes('created') || msg.includes('Confirmation email sent')) ? '#16a34a' : '#dc2626', border: `1px solid ${(msg.includes('created') || msg.includes('Confirmation email sent')) ? '#bbf7d0' : '#fecaca'}`, borderRadius: 12, padding: '10px 12px', fontSize: 13, fontWeight: 800 }}>
+            <div style={{ background: msg.includes('created') ? '#ecfdf5' : '#fef2f2', color: msg.includes('created') ? '#16a34a' : '#dc2626', border: `1px solid ${msg.includes('created') ? '#bbf7d0' : '#fecaca'}`, borderRadius: 12, padding: '10px 12px', fontSize: 13, fontWeight: 800 }}>
               {msg}
             </div>
           )}
@@ -337,7 +321,7 @@ function TVScreen({ tvId, tvState }: { tvId: string; tvState: any }) {
           <div key={i} style={{ overflow: 'hidden', background: '#000000', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8, ...(spans[i] || {}) }}>
             {cell?.mediaUrl ? (
               cell.mediaType === 'video' ? (
-                <video src={cell.mediaUrl} autoPlay loop playsInline controls style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000000' }} />
+                <video src={cell.mediaUrl} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000000' }} />
               ) : (
                 <img src={cell.mediaUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000000' }} />
               )
@@ -350,7 +334,7 @@ function TVScreen({ tvId, tvState }: { tvId: string; tvState: any }) {
       {layout.pip && tvState.cells[1]?.mediaUrl && (
         <div style={{ position: 'absolute', bottom: 20, right: 20, width: '28%', height: '28%', border: '3px solid #2563eb', borderRadius: 14, overflow: 'hidden', zIndex: 10, boxShadow: '0 18px 40px rgba(0,0,0,0.3)', background: '#000000' }}>
           {tvState.cells[1].mediaType === 'video' ? (
-            <video src={tvState.cells[1].mediaUrl} autoPlay loop playsInline controls style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000000' }} />
+            <video src={tvState.cells[1].mediaUrl} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000000' }} />
           ) : (
             <img src={tvState.cells[1].mediaUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000000' }} />
           )}
@@ -379,58 +363,24 @@ export default function App() {
   const [selectedLayoutId, setSelectedLayoutId] = useState<string | null>(null);
   const [cells, setCells] = useState<any[]>([]);
   const [activeCell, setActiveCell] = useState(0);
-  const [userSelectedLayout, setUserSelectedLayout] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
   const [notif, setNotif] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    let mounted = true;
-    let sessionResolved = false;
-
-    // Longer timeout for TV devices (10 seconds instead of 3)
-    const fallbackTimer = setTimeout(() => {
-      if (mounted && !sessionResolved) {
-        sessionResolved = true;
-        setIsAuthed(false);
-        setAuthUserId(null);
-        setAuthChecked(true);
-        console.warn('Auth check timeout - proceeding without session');
-      }
-    }, 10000);
-
-    supabase.auth
-      .getSession()
-      .then(({ data }) => {
-        if (!mounted) return;
-        
-        sessionResolved = true;
-        clearTimeout(fallbackTimer);
-        setIsAuthed(!!data.session);
-        setAuthUserId(data.session?.user?.id || null);
-        setAuthChecked(true);
-      })
-      .catch((err) => {
-        if (!mounted) return;
-
-        console.error('Auth session error:', err);
-        sessionResolved = true;
-        clearTimeout(fallbackTimer);
-        setIsAuthed(false);
-        setAuthUserId(null);
-        setAuthChecked(true);
-      });
+    supabase.auth.getSession().then(({ data }) => {
+      setIsAuthed(!!data.session);
+      setAuthUserId(data.session?.user?.id || null);
+      setAuthChecked(true);
+    });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthed(!!session);
       setAuthUserId(session?.user?.id || null);
-      setAuthChecked(true);
     });
 
     return () => {
-      mounted = false;
-      clearTimeout(fallbackTimer);
       listener.subscription.unsubscribe();
     };
   }, []);
@@ -456,27 +406,10 @@ export default function App() {
     const poll = async () => {
       try {
         const data = await getTVState(authUserId, activeTVId);
-
         if (data) {
           setTvStates(p => ({ ...p, [activeTVId]: data }));
-
-          if (appRole === 'controller' && loggedInTVId === activeTVId) {
-            // Only update layout if user hasn't manually selected one
-            if (!userSelectedLayout) {
-              setSelectedLayoutId(data.layout_id || null);
-              setCells(data.cells || []);
-            }
-          }
         } else {
           setTvStates(p => ({ ...p, [activeTVId]: null }));
-
-          if (appRole === 'controller' && loggedInTVId === activeTVId) {
-            // Don't reset selectedLayoutId if user has selected one
-            if (!userSelectedLayout) {
-              setSelectedLayoutId(null);
-              setCells([]);
-            }
-          }
         }
       } catch {}
     };
@@ -484,7 +417,7 @@ export default function App() {
     poll();
     const t = setInterval(poll, 2000);
     return () => clearInterval(t);
-  }, [activeTVId, loggedInTVId, authUserId, appRole, userSelectedLayout]);
+  }, [activeTVId, loggedInTVId, authUserId]);
 
   const selectRole = (role: 'tv' | 'controller') => {
     setAppRole(role);
@@ -503,37 +436,18 @@ export default function App() {
     localStorage.setItem('signage_app_role', 'tv');
   };
 
-  const handleControllerLogin = async (tvId: string) => {
+  const handleControllerLogin = (tvId: string) => {
     const tv = TV_LIST.find(t => t.id === tvId)!;
-
     setLoggedInTVId(tvId);
     setActiveTVId(tvId);
     setConnectedTV(tv);
     setSideTab('phone');
     setPhoneView('home');
+    setSelectedLayoutId(null);
+    setCells([]);
     setActiveCell(0);
-    setUserSelectedLayout(false); // Reset when switching TVs
-
     localStorage.setItem('signage_tv_id', tvId);
     localStorage.setItem('signage_app_role', 'controller');
-
-    if (authUserId) {
-      try {
-        const savedState = await getTVState(authUserId, tvId);
-
-        if (savedState) {
-          setTvStates(p => ({ ...p, [tvId]: savedState }));
-          setSelectedLayoutId(savedState.layout_id || null);
-          setCells(savedState.cells || []);
-        } else {
-          setSelectedLayoutId(null);
-          setCells([]);
-        }
-      } catch {
-        setSelectedLayoutId(null);
-        setCells([]);
-      }
-    }
   };
 
   const handleLogout = () => {
@@ -548,18 +462,16 @@ export default function App() {
     setConnectedTV(null);
     setSelectedLayoutId(null);
     setCells([]);
-    setUserSelectedLayout(false);
   };
 
   const toast = (msg: string) => { setNotif(msg); setTimeout(() => setNotif(null), 3000); };
 
   const updateTV = async (tvId: string, layoutId: string, newCells: any[]) => {
     if (!authUserId) {
-      console.warn('No auth user ID - skipping database save');
+      toast('Please login again');
       return;
     }
 
-    // Update UI immediately (optimistic update)
     setTvStates(p => ({
       ...p,
       [tvId]: {
@@ -570,86 +482,40 @@ export default function App() {
       },
     }));
 
-    // Save to database in the background, don't block UI
-    try {
-      await saveTVState(authUserId, tvId, layoutId, newCells);
-    } catch (err) {
-      console.error('Failed to save TV state to database:', err);
-      // Don't show error toast - this is a background operation
-    }
+    await saveTVState(authUserId, tvId, layoutId, newCells);
   };
 
   const applyLayout = async (layoutId: string) => {
-    console.log('applyLayout called with:', layoutId);
-    const layout = LAYOUTS.find(l => l.id === layoutId);
-    console.log('Found layout:', layout);
-
+    const layout = LAYOUTS.find(l => l.id === layoutId)!;
     const targetTV = connectedTV || TV_LIST.find(t => t.id === loggedInTVId);
-    console.log('Target TV:', targetTV);
+    if (!targetTV) return;
 
-    if (!targetTV) {
-      toast('Please select a TV first');
-      return;
-    }
-
-    if (!layout) {
-      console.error('Layout not found for ID:', layoutId);
-      toast('Invalid layout selected');
-      return;
-    }
-
-    try {
-      // Set up media state first
-      console.log('Setting selectedLayoutId to:', layoutId);
-      setSelectedLayoutId(layoutId);
-      setUserSelectedLayout(true);
-      const empty = Array.from({ length: layout.cells }, () => ({ mediaUrl: null, mediaType: null }));
-      setCells(empty);
-      setActiveCell(0);
-
-      // Set connected TV if not already set
-      setConnectedTV(targetTV);
-
-      // Save to database (optimistic update - won't block)
-      await updateTV(targetTV.id, layoutId, empty);
-
-      // Show success toast
-      toast(`Layout "${layout.name}" applied`);
-
-      // Navigate to media view immediately
-      console.log('Navigating to media view');
-      setPhoneView('media');
-    } catch (err) {
-      console.error('Error applying layout:', err);
-      toast('Error applying layout');
-    }
+    setSelectedLayoutId(layoutId);
+    const empty = Array.from({ length: layout.cells }, () => ({ mediaUrl: null, mediaType: null }));
+    setCells(empty);
+    setActiveCell(0);
+    await updateTV(targetTV.id, layoutId, empty);
+    toast(`Layout "${layout.name}" applied`);
+    setPhoneView('media');
   };
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    const targetTV = connectedTV || loggedInTV;
-    if (!file || !targetTV || !selectedLayoutId) return;
+    if (!file || !connectedTV || !selectedLayoutId) return;
 
     const type = file.type.startsWith('video') ? 'video' : 'image';
     setUploading(true);
 
     try {
-      setUploadStatus(type === 'video' ? 'Uploading video. Long videos can take several minutes depending on file size and internet speed...' : 'Uploading image...');
+      setUploadStatus('Uploading to Supabase...');
       const publicUrl = await uploadToSupabase(file);
 
       setUploadStatus('Publishing to TV...');
       const nextCells = cells.map((c, i) => i === activeCell ? { mediaUrl: publicUrl, mediaType: type } : c);
       setCells(nextCells);
-      
-      // Update UI immediately, save in background
-      if (authUserId) {
-        await updateTV(targetTV.id, selectedLayoutId, nextCells).catch(err => {
-          console.error('Failed to save to database:', err);
-        });
-      }
-      
-      setActiveTVId(targetTV.id);
-      toast(`Live on ${targetTV.name} — Zone ${activeCell + 1}`);
+      await updateTV(connectedTV.id, selectedLayoutId, nextCells);
+      setActiveTVId(connectedTV.id);
+      toast(`Live on ${connectedTV.name} — Zone ${activeCell + 1}`);
     } catch (err) {
       toast('Upload failed. Please try again.');
       console.error(err);
@@ -661,27 +527,7 @@ export default function App() {
   };
 
   if (!authChecked) {
-    return (
-      <div style={{ 
-        width: '100vw', 
-        height: '100vh', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        fontFamily: 'Inter, system-ui, sans-serif', 
-        fontWeight: 900, 
-        color: '#2563eb',
-        background: 'linear-gradient(135deg, #f8fbff, #eef5ff)',
-        flexDirection: 'column',
-        gap: 20
-      }}>
-        <div style={{ fontSize: 32 }}>Loading...</div>
-        <div style={{ fontSize: 14, color: '#64748b' }}>Initializing Signage Control</div>
-        <div style={{ width: 200, height: 4, background: '#e2e8f0', borderRadius: 2, overflow: 'hidden' }}>
-          <div style={{ height: '100%', background: '#2563eb', borderRadius: 2, animation: 'slideIn 1.5s ease-in-out infinite' }} />
-        </div>
-      </div>
-    );
+    return <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 900, color: '#2563eb' }}>Loading...</div>;
   }
 
   if (!isAuthed) {
@@ -703,15 +549,6 @@ export default function App() {
   const selectedLayout = LAYOUTS.find(l => l.id === selectedLayoutId);
   const activeTVInfo = TV_LIST.find(t => t.id === activeTVId)!;
   const loggedInTV = TV_LIST.find(t => t.id === loggedInTVId)!;
-
-  // Debug selectedLayoutId changes
-  useEffect(() => {
-    console.log('selectedLayoutId changed to:', selectedLayoutId);
-    console.log('phoneView is:', phoneView);
-    console.log('cells length:', cells.length);
-    console.log('connectedTV:', connectedTV);
-    console.log('loggedInTV:', loggedInTV);
-  }, [selectedLayoutId, phoneView, cells, connectedTV, loggedInTV]);
 
   if (appRole === 'tv') {
     return (
@@ -875,24 +712,26 @@ export default function App() {
                     <span style={{ marginLeft: 'auto', fontSize: 26 }}>›</span>
                   </button>
 
-                  <button onClick={() => setPhoneView(selectedLayoutId ? 'media' : 'layout')} className="secondary-action">
-                    <div className="action-icon light">□</div>
-                    <div style={{ textAlign: 'left' }}>
-                      <div style={{ color: '#0f172a', fontSize: 16, fontWeight: 900 }}>Push Media</div>
-                      <div style={{ color: '#64748b', fontSize: 13, marginTop: 3 }}>{selectedLayoutId ? 'Upload image or video to selected zones' : 'Choose a layout first, then upload media'}</div>
-                    </div>
-                    <span style={{ marginLeft: 'auto', fontSize: 26, color: '#94a3b8' }}>›</span>
-                  </button>
+                  {selectedLayoutId && (
+                    <button onClick={() => setPhoneView('media')} className="secondary-action">
+                      <div className="action-icon light">□</div>
+                      <div style={{ textAlign: 'left' }}>
+                        <div style={{ color: '#0f172a', fontSize: 16, fontWeight: 900 }}>Push Media</div>
+                        <div style={{ color: '#64748b', fontSize: 13, marginTop: 3 }}>Upload image or video to selected zones</div>
+                      </div>
+                      <span style={{ marginLeft: 'auto', fontSize: 26, color: '#94a3b8' }}>›</span>
+                    </button>
+                  )}
                 </div>
               )}
 
-              {phoneView === 'layout' && (connectedTV || loggedInTV) && (
+              {phoneView === 'layout' && connectedTV && (
                 <div>
                   <button onClick={() => setPhoneView('home')} className="back-btn">← Back</button>
                   <div className="panel-header">
                     <TVIcon size="md" active live />
                     <div>
-                      <div style={{ color: '#0f172a', fontWeight: 900, fontSize: 18 }}>{(connectedTV || loggedInTV).name}</div>
+                      <div style={{ color: '#0f172a', fontWeight: 900, fontSize: 18 }}>{connectedTV.name}</div>
                       <div style={{ color: '#64748b', fontSize: 13 }}>Select a screen layout</div>
                     </div>
                   </div>
@@ -913,18 +752,18 @@ export default function App() {
                 </div>
               )}
 
-              {phoneView === 'media' && selectedLayoutId && (
+              {phoneView === 'media' && connectedTV && selectedLayout && (
                 <div>
                   <div className="media-top-actions" style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
                     <button onClick={() => setPhoneView('layout')} className="back-btn">← Layout</button>
                     <button onClick={() => setPhoneView('home')} className="back-btn">Home</button>
-                    <button onClick={() => { setActiveTVId((connectedTV || loggedInTV).id); setSideTab('tv'); }} className="view-tv-btn">View TV →</button>
+                    <button onClick={() => { setActiveTVId(connectedTV.id); setSideTab('tv'); }} className="view-tv-btn">View TV →</button>
                   </div>
                   <div className="panel-header">
                     <TVIcon size="md" active live />
                     <div>
-                      <div style={{ color: '#0f172a', fontWeight: 900, fontSize: 18 }}>{(connectedTV || loggedInTV).name}</div>
-                      <div style={{ color: '#64748b', fontSize: 13 }}>{selectedLayout?.name || 'Layout'} · {cells.length} zones</div>
+                      <div style={{ color: '#0f172a', fontWeight: 900, fontSize: 18 }}>{connectedTV.name}</div>
+                      <div style={{ color: '#64748b', fontSize: 13 }}>{selectedLayout.name} · {cells.length} zones</div>
                     </div>
                   </div>
                   <div className="section-label">Select Zone</div>
@@ -938,7 +777,7 @@ export default function App() {
                       </button>
                     ))}
                   </div>
-                  <div className="push-info">Publishing to <strong>{(connectedTV || loggedInTV).name} · Zone {activeCell + 1}</strong></div>
+                  <div className="push-info">Publishing to <strong>{connectedTV.name} · Zone {activeCell + 1}</strong></div>
                   {uploading ? (
                     <div className="upload-box">
                       <div style={{ fontSize: 16, color: '#2563eb', fontWeight: 900 }}>{uploadStatus}</div>
@@ -949,8 +788,8 @@ export default function App() {
                       <div className="section-label">Push Media to Zone {activeCell + 1}</div>
                       <input ref={fileRef} type="file" accept="image/*,video/*" style={{ display: 'none' }} onChange={handleFile} />
                       {[
-                        { title: 'Upload Image', sub: 'JPG or PNG → TV display', label: 'Image' },
-                        { title: 'Upload Video', sub: 'MP4 video → TV display. Long videos may take several minutes.', label: 'Video' },
+                        { title: 'Upload Image', sub: 'JPG or PNG → Supabase → TV instantly', label: 'Image' },
+                        { title: 'Upload Video', sub: 'MP4 video → Supabase → TV instantly', label: 'Video' },
                       ].map(item => (
                         <button key={item.title} onClick={() => fileRef.current?.click()} className="media-action">
                           <div className="media-badge">{item.label}</div>
@@ -965,24 +804,12 @@ export default function App() {
                   )}
                 </div>
               )}
-
-              {phoneView === 'media' && !selectedLayoutId && (
-                <div>
-                  <button onClick={() => setPhoneView('layout')} className="back-btn">← Back to Layout</button>
-                  <div style={{ padding: 30, textAlign: 'center', color: '#ef4444' }}>
-                    <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 10 }}>No Layout Selected</div>
-                    <div style={{ fontSize: 14, color: '#64748b' }}>Please select a layout first</div>
-                  </div>
-                </div>
-              )}
             </div>
           </section>
         )}
       </main>
 
       <style>{`
-        @keyframes slideIn { 0%{width:0} 50%{width:100%} 100%{width:100%} }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body, #__next { width: 100%; min-height: 100%; }
         body { overflow: hidden; -webkit-font-smoothing: antialiased; }
