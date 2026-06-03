@@ -34,6 +34,7 @@ export function MediaGrid({ state }: Props) {
 
   const cellSpans = CELL_SPANS[layoutId] || {};
   const isPip = layout.pip;
+  const tvId = state.tv_id || state.tvId || '';
 
   return (
     <div style={{
@@ -63,7 +64,7 @@ export function MediaGrid({ state }: Props) {
         backdropFilter: 'blur(4px)', zIndex: 20,
       }}>
         <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e' }} />
-        <span style={{ color: '#fff', fontSize: 12, fontWeight: 700 }}>{state.tv_id || state.tvId}</span>
+        <span style={{ color: '#fff', fontSize: 12, fontWeight: 700 }}>{tvId.replace('TV', 'Screen ')}</span>
       </div>
     </div>
   );

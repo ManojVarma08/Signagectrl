@@ -24,7 +24,7 @@ export function MediaScreen({ route, navigation }: Props) {
   const handleAction = async (action: () => Promise<void>) => {
     try {
       await action();
-      Alert.alert('✅ Success!', `Media is live on ${tv.name} — Zone ${activeCell + 1}`);
+      Alert.alert('Success!', `Media is live on ${tv.name} — Zone ${activeCell + 1}`);
     } catch (e: any) {
       Alert.alert('Upload Failed', e.message || 'Check your internet and AWS config.');
     }
@@ -34,7 +34,7 @@ export function MediaScreen({ route, navigation }: Props) {
     <SafeAreaView style={s.container}>
       {/* Header */}
       <View style={s.header}>
-        <Text style={{ fontSize: 24 }}>{tv.icon}</Text>
+        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#fff' }}>{tv.location.charAt(0)}</Text>
         <View style={{ flex: 1 }}>
           <Text style={s.headerName}>{tv.name}</Text>
           <Text style={s.headerSub}>{layout?.name} · {cellCount} zone{cellCount > 1 ? 's' : ''}</Text>
@@ -52,7 +52,7 @@ export function MediaScreen({ route, navigation }: Props) {
                 {cell.mediaUrl ? (
                   cell.mediaType === 'image'
                     ? <Image source={{ uri: cell.mediaUrl }} style={s.zoneThumb} />
-                    : <View style={[s.zoneThumb, s.videoThumb]}><Text style={{ fontSize: 20 }}>🎬</Text></View>
+                    : <View style={[s.zoneThumb, s.videoThumb]}><Text style={{ fontSize: 12, fontWeight: 'bold', color: '#fff' }}>VD</Text></View>
                 ) : (
                   <View style={s.zoneEmpty}><Text style={{ fontSize: 22, color: COLORS.primary }}>+</Text></View>
                 )}
@@ -81,28 +81,28 @@ export function MediaScreen({ route, navigation }: Props) {
             <Text style={s.sectionLabel}>PUSH MEDIA TO ZONE {activeCell + 1}</Text>
 
             <TouchableOpacity style={s.uploadBtn} onPress={() => handleAction(pickImage)} activeOpacity={0.85}>
-              <View style={[s.uploadIcon, { backgroundColor: COLORS.primaryLt }]}><Text style={{ fontSize: 24 }}>🖼</Text></View>
+              <View style={[s.uploadIcon, { backgroundColor: COLORS.primaryLt }]}><Text style={{ fontSize: 14, fontWeight: 'bold', color: COLORS.primary }}>IM</Text></View>
               <View style={s.uploadInfo}>
                 <Text style={s.uploadTitle}>Upload Image</Text>
-                <Text style={s.uploadSub}>JPG, PNG → S3 → TV (permanent)</Text>
+                <Text style={s.uploadSub}>Show JPG or PNG on screen instantly</Text>
               </View>
               <Text style={s.arrow}>›</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={s.uploadBtn} onPress={() => handleAction(pickVideo)} activeOpacity={0.85}>
-              <View style={[s.uploadIcon, { backgroundColor: '#dcfce7' }]}><Text style={{ fontSize: 24 }}>🎬</Text></View>
+              <View style={[s.uploadIcon, { backgroundColor: '#dcfce7' }]}><Text style={{ fontSize: 14, fontWeight: 'bold', color: '#10b981' }}>VD</Text></View>
               <View style={s.uploadInfo}>
                 <Text style={s.uploadTitle}>Upload Video</Text>
-                <Text style={s.uploadSub}>MP4 up to 60s → S3 → TV</Text>
+                <Text style={s.uploadSub}>Show MP4 video on screen instantly</Text>
               </View>
               <Text style={s.arrow}>›</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={s.uploadBtn} onPress={() => handleAction(takePhoto)} activeOpacity={0.85}>
-              <View style={[s.uploadIcon, { backgroundColor: '#fff7ed' }]}><Text style={{ fontSize: 24 }}>📷</Text></View>
+              <View style={[s.uploadIcon, { backgroundColor: '#fff7ed' }]}><Text style={{ fontSize: 14, fontWeight: 'bold', color: '#f97316' }}>CM</Text></View>
               <View style={s.uploadInfo}>
                 <Text style={s.uploadTitle}>Take Photo Now</Text>
-                <Text style={s.uploadSub}>Camera → S3 → TV instantly</Text>
+                <Text style={s.uploadSub}>Show live camera photo on screen instantly</Text>
               </View>
               <Text style={s.arrow}>›</Text>
             </TouchableOpacity>

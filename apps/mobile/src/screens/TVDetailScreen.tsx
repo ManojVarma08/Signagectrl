@@ -24,18 +24,18 @@ export function TVDetailScreen({ route, navigation }: Props) {
         {/* TV Header */}
         <View style={s.header}>
           <View style={s.tvScreen}>
-            <Text style={{ fontSize: 28 }}>{tv.icon}</Text>
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#fff' }}>{tv.location.charAt(0)}</Text>
             <Text style={s.tvScreenId}>{tv.id}</Text>
           </View>
           <Text style={s.tvName}>{tv.name}</Text>
-          <Text style={s.tvLoc}>📍 {tv.location}</Text>
+          <Text style={s.tvLoc}>{tv.location}</Text>
           <View style={s.liveChip}>
             <View style={s.liveDot} />
             <Text style={s.liveText}>Live · Connected</Text>
           </View>
           {layout && (
             <View style={s.layoutBadge}>
-              <Text style={s.layoutBadgeText}>🗂 {layout.name} · {layout.cells} zones</Text>
+              <Text style={s.layoutBadgeText}>Layout: {layout.name} · {layout.cells} zones</Text>
             </View>
           )}
         </View>
@@ -56,7 +56,7 @@ export function TVDetailScreen({ route, navigation }: Props) {
 
           <TouchableOpacity style={s.actionBtn} onPress={() => navigation.navigate('Layout', { tv })} activeOpacity={0.85}>
             <View style={[s.actionIcon, { backgroundColor: COLORS.primaryLt }]}>
-              <Text style={{ fontSize: 22 }}>🗂</Text>
+              <Text style={{ fontSize: 14, fontWeight: 'bold', color: COLORS.primary }}>LY</Text>
             </View>
             <View style={s.actionInfo}>
               <Text style={s.actionTitle}>Change Layout</Text>
@@ -77,7 +77,7 @@ export function TVDetailScreen({ route, navigation }: Props) {
             activeOpacity={0.85}
           >
             <View style={[s.actionIcon, { backgroundColor: '#dcfce7' }]}>
-              <Text style={{ fontSize: 22 }}>🖼</Text>
+              <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#10b981' }}>MD</Text>
             </View>
             <View style={s.actionInfo}>
               <Text style={s.actionTitle}>Push Media</Text>
@@ -88,7 +88,7 @@ export function TVDetailScreen({ route, navigation }: Props) {
 
           <TouchableOpacity style={[s.actionBtn, { borderColor: '#fee2e2' }]} onPress={() => clearTV(tv.id)} activeOpacity={0.85}>
             <View style={[s.actionIcon, { backgroundColor: '#fee2e2' }]}>
-              <Text style={{ fontSize: 22 }}>🗑</Text>
+              <Text style={{ fontSize: 14, fontWeight: 'bold', color: COLORS.error }}>CL</Text>
             </View>
             <View style={s.actionInfo}>
               <Text style={[s.actionTitle, { color: COLORS.error }]}>Clear Display</Text>

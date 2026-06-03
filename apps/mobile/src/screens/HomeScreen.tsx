@@ -18,12 +18,12 @@ function TVCard({ tv, onPress }: { tv: TV; onPress: () => void }) {
   return (
     <TouchableOpacity style={s.tvCard} onPress={onPress} activeOpacity={0.85}>
       <View style={s.tvScreen}>
-        <Text style={{ fontSize: 14 }}>{tv.icon}</Text>
+        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#fff' }}>{tv.location.charAt(0)}</Text>
         <Text style={s.tvScreenId}>{tv.id}</Text>
       </View>
       <View style={s.tvInfo}>
         <Text style={s.tvName}>{tv.name}</Text>
-        <Text style={s.tvLoc}>📍 {tv.location}</Text>
+        <Text style={s.tvLoc}>{tv.location}</Text>
         {layout
           ? <Text style={s.tvLayout}>{layout.name}</Text>
           : <Text style={s.tvNoLayout}>Tap to configure</Text>}
@@ -50,7 +50,7 @@ export function HomeScreen({ navigation }: Props) {
       {/* Header */}
       <View style={s.header}>
         <View>
-          <Text style={s.headerTitle}>📺 Signage Ctrl</Text>
+          <Text style={s.headerTitle}>Signage Ctrl</Text>
           <Text style={s.headerSub}>Control {TV_LIST.length} displays</Text>
         </View>
         <View style={s.liveBadge}>
@@ -61,7 +61,6 @@ export function HomeScreen({ navigation }: Props) {
 
       {/* Scan Button */}
       <TouchableOpacity style={s.scanBtn} onPress={() => navigation.navigate('Scanner')} activeOpacity={0.9}>
-        <Text style={{ fontSize: 26 }}>📷</Text>
         <View style={{ flex: 1 }}>
           <Text style={s.scanTitle}>Scan TV QR Code</Text>
           <Text style={s.scanSub}>Point camera at TV screen</Text>

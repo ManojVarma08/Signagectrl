@@ -29,10 +29,10 @@ export function LayoutScreen({ route, navigation }: Props) {
     <SafeAreaView style={s.container}>
       {/* TV bar */}
       <View style={s.tvBar}>
-        <Text style={{ fontSize: 20 }}>{tv.icon}</Text>
+        <Text style={{ fontSize: 16, fontWeight: 'bold', color: COLORS.primary }}>{tv.location.charAt(0)}</Text>
         <View style={{ flex: 1 }}>
           <Text style={s.tvName}>{tv.name}</Text>
-          <Text style={s.tvLoc}>📍 {tv.location}</Text>
+          <Text style={s.tvLoc}>{tv.location}</Text>
         </View>
         <View style={s.liveChip}><View style={s.liveDot}/><Text style={s.liveText}>Live</Text></View>
       </View>

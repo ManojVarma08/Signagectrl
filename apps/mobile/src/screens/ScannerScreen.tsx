@@ -66,7 +66,7 @@ export function ScannerScreen({ navigation }: Props) {
         </View>
         <View style={s.overlayBottom}>
           <Text style={s.scanText}>
-            {scanned ? '✅ TV Found!' : 'Point camera at the QR code on the TV screen'}
+            {scanned ? 'TV Found!' : 'Point camera at the QR code on the TV screen'}
           </Text>
           <TouchableOpacity style={s.manualBtn} onPress={() => {
             Alert.prompt('Enter TV ID', 'e.g. TV1, TV5', (text) => {
@@ -78,7 +78,7 @@ export function ScannerScreen({ navigation }: Props) {
           <View style={s.quickGrid}>
             {TV_LIST.map(tv => (
               <TouchableOpacity key={tv.id} style={s.quickChip} onPress={() => handleScan({ data: tv.id })}>
-                <Text style={{ fontSize: 14 }}>{tv.icon}</Text>
+                <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#fff' }}>{tv.location.charAt(0)}</Text>
                 <Text style={s.quickId}>{tv.id}</Text>
               </TouchableOpacity>
             ))}

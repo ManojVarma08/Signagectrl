@@ -1,6 +1,51 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
+// Custom clean SVG Icons to replace emojis/blocks
+const IconTV = ({ size = 20, style = {} }: { size?: number; style?: React.CSSProperties }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={style}>
+    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+    <line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
+  </svg>
+);
+
+const IconPhone = ({ size = 20, style = {} }: { size?: number; style?: React.CSSProperties }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={style}>
+    <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+    <line x1="12" y1="18" x2="12" y2="18.01" />
+  </svg>
+);
+
+const IconEye = ({ size = 20, style = {} }: { size?: number; style?: React.CSSProperties }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={style}>
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const IconSliders = ({ size = 20, style = {} }: { size?: number; style?: React.CSSProperties }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={style}>
+    <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
+    <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
+    <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
+    <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" />
+  </svg>
+);
+
+const IconGrid = ({ size = 20, style = {} }: { size?: number; style?: React.CSSProperties }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={style}>
+    <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+    <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+  </svg>
+);
+
+const IconUpload = ({ size = 20, style = {} }: { size?: number; style?: React.CSSProperties }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={style}>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+);
+
 const SUPABASE_URL = 'https://wkilfvbytdazmnohksiu.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndraWxmdmJ5dGRhem1ub2hrc2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNDI1NTgsImV4cCI6MjA5MjYxODU1OH0.3pZ6vHJXFmniWtMQo5KHZkovEwkuC4shaDw6FZOJtVE';
 const BUCKET = 'signage-media';
@@ -13,16 +58,16 @@ const TV_PINS: Record<string, string> = {
 };
 
 const TV_LIST = [
-  { id: 'TV1', name: 'TV 1', location: 'Lobby' },
-  { id: 'TV2', name: 'TV 2', location: 'Hall A' },
-  { id: 'TV3', name: 'TV 3', location: 'Hall B' },
-  { id: 'TV4', name: 'TV 4', location: 'Cafeteria' },
-  { id: 'TV5', name: 'TV 5', location: 'Board Room' },
-  { id: 'TV6', name: 'TV 6', location: 'Reception' },
-  { id: 'TV7', name: 'TV 7', location: 'Corridor 1' },
-  { id: 'TV8', name: 'TV 8', location: 'Corridor 2' },
-  { id: 'TV9', name: 'TV 9', location: 'Gym' },
-  { id: 'TV10', name: 'TV 10', location: 'Rooftop' },
+  { id: 'TV1', name: 'Screen 1', location: 'Lobby' },
+  { id: 'TV2', name: 'Screen 2', location: 'Hall A' },
+  { id: 'TV3', name: 'Screen 3', location: 'Hall B' },
+  { id: 'TV4', name: 'Screen 4', location: 'Cafeteria' },
+  { id: 'TV5', name: 'Screen 5', location: 'Board Room' },
+  { id: 'TV6', name: 'Screen 6', location: 'Reception' },
+  { id: 'TV7', name: 'Screen 7', location: 'Corridor 1' },
+  { id: 'TV8', name: 'Screen 8', location: 'Corridor 2' },
+  { id: 'TV9', name: 'Screen 9', location: 'Gym' },
+  { id: 'TV10', name: 'Screen 10', location: 'Rooftop' },
 ];
 
 const LAYOUTS = [
@@ -103,11 +148,11 @@ function TVIcon({ active = false, live = false, size = 'sm' }: { active?: boolea
   const dimensions = size === 'lg' ? { w: 92, h: 58, standW: 34 } : size === 'md' ? { w: 64, h: 42, standW: 26 } : { w: 44, h: 30, standW: 20 };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-      <div style={{ width: dimensions.w, height: dimensions.h, borderRadius: size === 'lg' ? 12 : 8, background: active ? 'linear-gradient(135deg, #2563eb, #38bdf8)' : 'linear-gradient(135deg, #e5eefb, #f8fafc)', border: active ? '2px solid #1d4ed8' : '1px solid #cbd5e1', boxShadow: active ? '0 10px 24px rgba(37,99,235,0.25)' : '0 4px 12px rgba(15,23,42,0.08)', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ width: dimensions.w, height: dimensions.h, borderRadius: size === 'lg' ? 12 : 8, background: active ? 'linear-gradient(135deg, #0f172a, #0ea5e9)' : 'linear-gradient(135deg, #f1f5f9, #e2e8f0)', border: active ? '2px solid #0284c7' : '1px solid #cbd5e1', boxShadow: active ? '0 10px 24px rgba(14,165,233,0.25)' : '0 4px 12px rgba(15,23,42,0.05)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 5, borderRadius: size === 'lg' ? 8 : 5, background: active ? 'linear-gradient(135deg, rgba(255,255,255,0.35), rgba(255,255,255,0.08))' : '#ffffff' }} />
-        {live && <div style={{ position: 'absolute', top: 5, right: 5, width: 7, height: 7, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 0 3px rgba(34,197,94,0.18)' }} />}
+        {live && <div style={{ position: 'absolute', top: 5, right: 5, width: 7, height: 7, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 0 3px rgba(16,185,129,0.18)' }} />}
       </div>
-      <div style={{ width: dimensions.standW, height: 4, borderRadius: 999, background: active ? '#1d4ed8' : '#94a3b8', opacity: 0.8 }} />
+      <div style={{ width: dimensions.standW, height: 4, borderRadius: 999, background: active ? '#0284c7' : '#64748b', opacity: 0.8 }} />
     </div>
   );
 }
@@ -161,7 +206,7 @@ function AuthScreen({ onAuthSuccess }: { onAuthSuccess: () => void }) {
     <div style={{ width: '100vw', minHeight: '100vh', background: 'linear-gradient(135deg, #f8fbff, #eef5ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, system-ui, sans-serif', padding: 20 }}>
       <div style={{ width: '100%', maxWidth: 430, background: '#ffffff', border: '1px solid #dbeafe', borderRadius: 28, padding: 30, boxShadow: '0 24px 70px rgba(15,23,42,0.12)' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
-          <TVIcon size="lg" active live />
+          <img src="/logo.png" alt="Signage CTRL Logo" style={{ height: '100px', width: 'auto' }} />
         </div>
 
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
@@ -181,11 +226,11 @@ function AuthScreen({ onAuthSuccess }: { onAuthSuccess: () => void }) {
             </div>
           )}
 
-          <button onClick={handleAuth} disabled={loading} style={{ width: '100%', padding: 16, borderRadius: 16, border: 'none', background: 'linear-gradient(135deg, #2563eb, #38bdf8)', color: '#ffffff', fontSize: 16, fontWeight: 900, cursor: 'pointer', marginTop: 4 }}>
+          <button onClick={handleAuth} disabled={loading} style={{ width: '100%', padding: 16, borderRadius: 16, border: 'none', background: 'linear-gradient(135deg, #0f172a, #0ea5e9)', color: '#ffffff', fontSize: 16, fontWeight: 900, cursor: 'pointer', marginTop: 4 }}>
             {loading ? 'Please wait...' : mode === 'login' ? 'Login' : 'Sign Up'}
           </button>
 
-          <button onClick={() => { setMsg(''); setMode(mode === 'login' ? 'signup' : 'login'); }} style={{ width: '100%', padding: 13, borderRadius: 16, border: '1px solid #dbeafe', background: '#ffffff', color: '#2563eb', fontSize: 14, fontWeight: 900, cursor: 'pointer' }}>
+          <button onClick={() => { setMsg(''); setMode(mode === 'login' ? 'signup' : 'login'); }} style={{ width: '100%', padding: 13, borderRadius: 16, border: '1px solid #bae6fd', background: '#ffffff', color: '#0ea5e9', fontSize: 14, fontWeight: 900, cursor: 'pointer' }}>
             {mode === 'login' ? 'New user? Create account' : 'Already have account? Login'}
           </button>
         </div>
@@ -200,7 +245,7 @@ function RoleSelectScreen({ onSelect }: { onSelect: (role: 'tv' | 'controller') 
     <div style={{ width: '100vw', minHeight: '100vh', background: 'linear-gradient(135deg, #f8fbff, #eef5ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, system-ui, sans-serif', padding: 20 }}>
       <div style={{ width: '100%', maxWidth: 430, background: '#ffffff', border: '1px solid #dbeafe', borderRadius: 28, padding: 30, boxShadow: '0 24px 70px rgba(15,23,42,0.12)' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
-          <TVIcon size="lg" active live />
+          <img src="/logo.png" alt="Signage CTRL Logo" style={{ height: '100px', width: 'auto' }} />
         </div>
 
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
@@ -208,12 +253,12 @@ function RoleSelectScreen({ onSelect }: { onSelect: (role: 'tv' | 'controller') 
           <div style={{ color: '#64748b', marginTop: 8 }}>Choose how you want to use this device</div>
         </div>
 
-        <button onClick={() => onSelect('tv')} style={{ width: '100%', padding: 20, borderRadius: 18, border: 'none', background: 'linear-gradient(135deg, #2563eb, #38bdf8)', color: '#ffffff', fontSize: 18, fontWeight: 900, cursor: 'pointer', marginBottom: 14 }}>
-          📺 TV User
+        <button onClick={() => onSelect('tv')} style={{ width: '100%', padding: 20, borderRadius: 18, border: 'none', background: 'linear-gradient(135deg, #0f172a, #0ea5e9)', color: '#ffffff', fontSize: 18, fontWeight: 900, cursor: 'pointer', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+          <IconTV size={24} /> TV User
         </button>
 
-        <button onClick={() => onSelect('controller')} style={{ width: '100%', padding: 20, borderRadius: 18, border: '1px solid #dbeafe', background: '#ffffff', color: '#0f172a', fontSize: 18, fontWeight: 900, cursor: 'pointer' }}>
-          📱 Controller
+        <button onClick={() => onSelect('controller')} style={{ width: '100%', padding: 20, borderRadius: 18, border: '1px solid #bae6fd', background: '#ffffff', color: '#0f172a', fontSize: 18, fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+          <IconPhone size={24} style={{ color: '#0ea5e9' }} /> Controller
         </button>
       </div>
     </div>
@@ -248,14 +293,16 @@ function PINScreen({ onLogin, title, subtitle }: { onLogin: (tvId: string) => vo
   return (
     <div style={{ width: '100vw', minHeight: '100vh', background: 'linear-gradient(135deg, #f8fbff 0%, #eef5ff 50%, #ffffff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, system-ui, sans-serif', padding: 20 }}>
       <div style={{ width: '100%', maxWidth: 430, background: 'rgba(255,255,255,0.92)', border: '1px solid #dbeafe', borderRadius: 28, boxShadow: '0 24px 70px rgba(15,23,42,0.12)', padding: 30 }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}><TVIcon size="lg" active /></div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
+          <img src="/logo.png" alt="Signage CTRL Logo" style={{ height: '100px', width: 'auto' }} />
+        </div>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ color: '#0f172a', fontSize: 28, fontWeight: 900, letterSpacing: -0.5 }}>{title}</div>
           <div style={{ color: '#64748b', fontSize: 14, marginTop: 6 }}>{subtitle}</div>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 14, marginBottom: 12, animation: shake ? 'shake 0.4s ease' : 'none' }}>
           {[0,1,2,3].map(i => (
-            <div key={i} style={{ width: 16, height: 16, borderRadius: '50%', background: i < pin.length ? '#2563eb' : '#e2e8f0', border: `2px solid ${i < pin.length ? '#2563eb' : '#cbd5e1'}`, transition: 'all 0.15s ease' }} />
+            <div key={i} style={{ width: 16, height: 16, borderRadius: '50%', background: i < pin.length ? '#0ea5e9' : '#e2e8f0', border: `2px solid ${i < pin.length ? '#0ea5e9' : '#cbd5e1'}`, transition: 'all 0.15s ease' }} />
           ))}
         </div>
         <div style={{ height: 24, textAlign: 'center', marginBottom: 14 }}>
@@ -273,8 +320,8 @@ function PINScreen({ onLogin, title, subtitle }: { onLogin: (tvId: string) => vo
             {TV_LIST.map(tv => (
               <div key={tv.id} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '8px 4px', textAlign: 'center' }}>
                 <TVIcon />
-                <div style={{ color: '#334155', fontSize: 10, fontWeight: 800, marginTop: 4 }}>{tv.id}</div>
-                <div style={{ color: '#2563eb', fontSize: 11, fontWeight: 900 }}>{TV_PINS[tv.id]}</div>
+                <div style={{ color: '#334155', fontSize: 10, fontWeight: 800, marginTop: 4 }}>{tv.name}</div>
+                <div style={{ color: '#0ea5e9', fontSize: 11, fontWeight: 900 }}>{TV_PINS[tv.id]}</div>
               </div>
             ))}
           </div>
@@ -291,6 +338,7 @@ function PINScreen({ onLogin, title, subtitle }: { onLogin: (tvId: string) => vo
   );
 }
 
+
 // ── TV Screen ─────────────────────────────────────────────────
 function TVScreen({ tvId, tvState }: { tvId: string; tvState: any }) {
   const layout = LAYOUTS.find(l => l.id === tvState?.layout_id);
@@ -298,13 +346,15 @@ function TVScreen({ tvId, tvState }: { tvId: string; tvState: any }) {
 
   if (!hasMedia || !layout) {
     return (
-      <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 30 }}>
-        <div style={{ width: '100%', maxWidth: 520, background: '#ffffff', border: '1px solid #dbeafe', borderRadius: 28, padding: 42, textAlign: 'center', boxShadow: '0 24px 70px rgba(15,23,42,0.08)' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 22 }}><TVIcon size="lg" /></div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>{tvId} is waiting</div>
-          <div style={{ color: '#64748b', fontSize: 15 }}>Open Controller with the same account and same TV PIN, then upload media to display it here.</div>
-          <div style={{ marginTop: 24, display: 'inline-flex', alignItems: 'center', gap: 8, background: '#ecfdf5', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: 999, padding: '8px 14px', fontSize: 13, fontWeight: 800 }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', animation: 'blink 1.2s ease infinite', display: 'inline-block' }} />
+      <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #090d16 0%, #020617 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 30, position: 'relative' }}>
+        <div style={{ width: '100%', maxWidth: 520, background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 28, padding: 42, textAlign: 'center', boxShadow: '0 24px 70px rgba(0,0,0,0.3)', backdropFilter: 'blur(16px)' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 22 }}>
+            <img src="/logo.png" alt="Signage CTRL Logo" style={{ height: '120px', width: 'auto' }} />
+          </div>
+          <div style={{ fontSize: 24, fontWeight: 950, color: '#f8fafc', marginBottom: 8, letterSpacing: '-0.5px' }}>{tvId.replace('TV', 'Screen ')} is waiting</div>
+          <div style={{ color: '#94a3b8', fontSize: 15, lineHeight: 1.5 }}>Connect controller with same TV PIN and publish media.</div>
+          <div style={{ marginTop: 24, display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(16,185,129,0.15)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 999, padding: '8px 14px', fontSize: 13, fontWeight: 800 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', animation: 'blink 1.2s ease infinite', display: 'inline-block' }} />
             Ready
           </div>
         </div>
@@ -313,6 +363,7 @@ function TVScreen({ tvId, tvState }: { tvId: string; tvState: any }) {
   }
 
   const spans = CELL_SPANS[tvState.layout_id] || {};
+
   return (
     <div style={{ width: '100%', height: '100%', display: 'grid', gridTemplateColumns: layout.cols, gridTemplateRows: layout.rows, gap: 4, background: '#0f172a', position: 'relative', padding: 4 }}>
       {tvState.cells.map((cell: any, i: number) => {
@@ -326,13 +377,13 @@ function TVScreen({ tvId, tvState }: { tvId: string; tvState: any }) {
                 <img src={cell.mediaUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000000' }} />
               )
             ) : (
-              <span style={{ color: '#94a3b8', fontSize: 14, fontWeight: 700 }}>Zone {i + 1}</span>
+              <span style={{ color: '#cbd5e1', fontSize: 14, fontWeight: 700 }}>Zone {i + 1}</span>
             )}
           </div>
         );
       })}
       {layout.pip && tvState.cells[1]?.mediaUrl && (
-        <div style={{ position: 'absolute', bottom: 20, right: 20, width: '28%', height: '28%', border: '3px solid #2563eb', borderRadius: 14, overflow: 'hidden', zIndex: 10, boxShadow: '0 18px 40px rgba(0,0,0,0.3)', background: '#000000' }}>
+        <div style={{ position: 'absolute', bottom: 20, right: 20, width: '28%', height: '28%', border: '3px solid #0ea5e9', borderRadius: 14, overflow: 'hidden', zIndex: 10, boxShadow: '0 18px 40px rgba(0,0,0,0.3)', background: '#000000' }}>
           {tvState.cells[1].mediaType === 'video' ? (
             <video src={tvState.cells[1].mediaUrl} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000000' }} />
           ) : (
@@ -342,7 +393,7 @@ function TVScreen({ tvId, tvState }: { tvId: string; tvState: any }) {
       )}
       <div style={{ position: 'absolute', bottom: 18, left: 18, background: 'rgba(255,255,255,0.92)', borderRadius: 999, padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 8, zIndex: 20, boxShadow: '0 10px 30px rgba(0,0,0,0.18)' }}>
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
-        <span style={{ color: '#0f172a', fontSize: 12, fontWeight: 900 }}>{tvId}</span>
+        <span style={{ color: '#0f172a', fontSize: 12, fontWeight: 900 }}>{tvId.replace('TV', 'Screen ')}</span>
       </div>
     </div>
   );
@@ -485,6 +536,28 @@ export default function App() {
     await saveTVState(authUserId, tvId, layoutId, newCells);
   };
 
+  const setTVMetadata = async (newMeta: any) => {
+    const targetTV = connectedTV || TV_LIST.find(t => t.id === loggedInTVId);
+    if (!targetTV || !authUserId) return;
+    const activeState = tvStates[targetTV.id];
+    
+    const newCells = activeState?.cells ? JSON.parse(JSON.stringify(activeState.cells)) : [{ mediaUrl: null, mediaType: null }];
+    if (newCells.length === 0) {
+      newCells.push({ mediaUrl: null, mediaType: null });
+    }
+    
+    newCells[0] = {
+      ...newCells[0],
+      metadata: {
+        ...(newCells[0].metadata || {}),
+        ...newMeta
+      }
+    };
+    
+    const currentLayoutId = activeState?.layout_id || selectedLayoutId || 'L1';
+    await updateTV(targetTV.id, currentLayoutId, newCells);
+  };
+
   const applyLayout = async (layoutId: string) => {
     const layout = LAYOUTS.find(l => l.id === layoutId)!;
     const targetTV = connectedTV || TV_LIST.find(t => t.id === loggedInTVId);
@@ -507,10 +580,10 @@ export default function App() {
     setUploading(true);
 
     try {
-      setUploadStatus('Uploading to Supabase...');
+      setUploadStatus('Uploading media...');
       const publicUrl = await uploadToSupabase(file);
 
-      setUploadStatus('Publishing to TV...');
+      setUploadStatus('Syncing with Screen...');
       const nextCells = cells.map((c, i) => i === activeCell ? { mediaUrl: publicUrl, mediaType: type } : c);
       setCells(nextCells);
       await updateTV(connectedTV.id, selectedLayoutId, nextCells);
@@ -527,7 +600,7 @@ export default function App() {
   };
 
   if (!authChecked) {
-    return <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 900, color: '#2563eb' }}>Loading...</div>;
+    return <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, system-ui, sans-serif', fontWeight: 900, color: '#0ea5e9' }}>Loading...</div>;
   }
 
   if (!isAuthed) {
@@ -549,6 +622,8 @@ export default function App() {
   const selectedLayout = LAYOUTS.find(l => l.id === selectedLayoutId);
   const activeTVInfo = TV_LIST.find(t => t.id === activeTVId)!;
   const loggedInTV = TV_LIST.find(t => t.id === loggedInTVId)!;
+  const activeTVState = tvStates[loggedInTVId || 'TV1'];
+  const metadata = activeTVState?.cells?.[0]?.metadata || {};
 
   if (appRole === 'tv') {
     return (
@@ -581,19 +656,21 @@ export default function App() {
   return (
     <div className="app-shell" style={{ display: 'flex', height: '100vh', width: '100vw', fontFamily: 'Inter, system-ui, sans-serif', overflow: 'hidden', background: '#f8fbff', color: '#0f172a' }}>
       <aside className="app-sidebar" style={{ width: 108, background: '#ffffff', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '18px 10px', flexShrink: 0, overflowY: 'auto', boxShadow: '6px 0 24px rgba(15,23,42,0.04)' }}>
-        <div style={{ marginBottom: 20 }}><TVIcon size="md" active /></div>
+        <div style={{ marginBottom: 20, width: '100%', padding: '0 6px' }}>
+          <img src="/logo.png" alt="Signage CTRL Logo" style={{ width: '100%', height: 'auto' }} />
+        </div>
 
         <button onClick={() => { setSideTab('tv'); }} className={`nav-btn ${sideTab === 'tv' ? 'active' : ''}`}>
-          <span className="nav-icon">▣</span><span>Preview</span>
+          <span className="nav-icon"><IconEye /></span><span>Preview</span>
         </button>
 
         {appRole === 'controller' && (
           <>
             <button onClick={() => { setSideTab('phone'); setPhoneView('home'); }} className={`nav-btn ${sideTab === 'phone' && phoneView !== 'tvs' ? 'active' : ''}`}>
-              <span className="nav-icon">▤</span><span>Control</span>
+              <span className="nav-icon"><IconSliders /></span><span>Control</span>
             </button>
             <button onClick={() => { setSideTab('phone'); setPhoneView('tvs'); }} className={`nav-btn ${sideTab === 'phone' && phoneView === 'tvs' ? 'active' : ''}`}>
-              <span className="nav-icon">▦</span><span>TVs</span>
+              <span className="nav-icon"><IconGrid /></span><span>TVs</span>
             </button>
           </>
         )}
@@ -605,7 +682,7 @@ export default function App() {
           const live = tvStates[tv.id]?.cells?.some((c: any) => c?.mediaUrl);
           return (
             <button key={tv.id} onClick={() => { setActiveTVId(tv.id); setSideTab('tv'); }} title={tv.name} className={`tv-side-btn ${active ? 'active' : ''}`}>
-              <TVIcon active={active} live={live} /><span>{tv.id}</span>
+              <TVIcon active={active} live={live} /><span>{tv.name}</span>
             </button>
           );
         })}
@@ -704,7 +781,7 @@ export default function App() {
                   </div>
 
                   <button onClick={() => { setConnectedTV(loggedInTV); setPhoneView('layout'); }} className="primary-action">
-                    <div className="action-icon">▦</div>
+                    <div className="action-icon"><IconGrid size={24} style={{ color: '#ffffff' }} /></div>
                     <div style={{ textAlign: 'left' }}>
                       <div style={{ fontSize: 16, fontWeight: 900 }}>Select Layout</div>
                       <div style={{ fontSize: 13, opacity: 0.78, marginTop: 3 }}>Choose how to divide {loggedInTV.name} screen</div>
@@ -714,7 +791,7 @@ export default function App() {
 
                   {selectedLayoutId && (
                     <button onClick={() => setPhoneView('media')} className="secondary-action">
-                      <div className="action-icon light">□</div>
+                      <div className="action-icon light"><IconUpload size={24} style={{ color: '#0ea5e9' }} /></div>
                       <div style={{ textAlign: 'left' }}>
                         <div style={{ color: '#0f172a', fontSize: 16, fontWeight: 900 }}>Push Media</div>
                         <div style={{ color: '#64748b', fontSize: 13, marginTop: 3 }}>Upload image or video to selected zones</div>
@@ -788,8 +865,8 @@ export default function App() {
                       <div className="section-label">Push Media to Zone {activeCell + 1}</div>
                       <input ref={fileRef} type="file" accept="image/*,video/*" style={{ display: 'none' }} onChange={handleFile} />
                       {[
-                        { title: 'Upload Image', sub: 'JPG or PNG → Supabase → TV instantly', label: 'Image' },
-                        { title: 'Upload Video', sub: 'MP4 video → Supabase → TV instantly', label: 'Video' },
+                        { title: 'Upload Image', sub: 'Show JPG or PNG on screen instantly', label: 'Image' },
+                        { title: 'Upload Video', sub: 'Show MP4 video on screen instantly', label: 'Video' },
                       ].map(item => (
                         <button key={item.title} onClick={() => fileRef.current?.click()} className="media-action">
                           <div className="media-badge">{item.label}</div>
@@ -814,65 +891,71 @@ export default function App() {
         html, body, #__next { width: 100%; min-height: 100%; }
         body { overflow: hidden; -webkit-font-smoothing: antialiased; }
         button { font-family: inherit; }
+        .engagement-btn { width: 100%; height: 80px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.15s ease; box-shadow: 0 4px 12px rgba(15,23,42,0.03); }
+        .engagement-btn:hover { border-color: #bae6fd; background: #f0f9ff; transform: translateY(-1.5px); box-shadow: 0 8px 18px rgba(14,165,233,0.08); }
+        .engagement-btn .btn-title { font-size: 12px; font-weight: 800; color: #0f172a; }
+        .engagement-btn .btn-icon { line-height: 1; }
+        .toggle-btn { transition: all 0.15s ease; }
+        .toggle-btn:active { transform: scale(0.96); }
         .nav-btn { width: 82px; padding: 12px 0; border-radius: 16px; border: 1px solid transparent; background: transparent; color: #64748b; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; margin-bottom: 8px; font-size: 11px; font-weight: 900; transition: all 0.15s ease; }
         .nav-btn:hover { background: #f1f5f9; }
-        .nav-btn.active { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
+        .nav-btn.active { background: #f0f9ff; border-color: #bae6fd; color: #0ea5e9; }
         .nav-icon { font-size: 18px; line-height: 1; }
         .tv-side-btn { width: 82px; border-radius: 16px; border: 1px solid transparent; background: transparent; padding: 8px 4px; margin-bottom: 6px; cursor: pointer; color: #64748b; font-size: 10px; font-weight: 900; transition: all 0.15s ease; }
         .tv-side-btn:hover { background: #f8fafc; }
-        .tv-side-btn.active { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
+        .tv-side-btn.active { background: #f0f9ff; border-color: #bae6fd; color: #0ea5e9; }
         .logout-btn { width: 44px; height: 44px; border: 1px solid #fecaca; background: #fff7f7; color: #ef4444; border-radius: 14px; padding: 0; cursor: pointer; font-size: 0; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; }
         .logout-btn::before { content: ''; width: 26px; height: 26px; display: block; background: #ef4444; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpath d='M16 17l5-5-5-5'/%3E%3Cpath d='M21 12H9'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpath d='M16 17l5-5-5-5'/%3E%3Cpath d='M21 12H9'/%3E%3C/svg%3E") center / contain no-repeat; transform: none; }
         .ios-logout { font-size: 0 !important; width: 40px; height: 40px; padding: 0 !important; display: inline-flex; align-items: center; justify-content: center; border-color: #fecaca !important; background: #fff7f7 !important; color: #ef4444 !important; }
         .ios-logout::before { content: ''; width: 24px; height: 24px; display: block; background: #ef4444; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpath d='M16 17l5-5-5-5'/%3E%3Cpath d='M21 12H9'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpath d='M16 17l5-5-5-5'/%3E%3Cpath d='M21 12H9'/%3E%3C/svg%3E") center / contain no-repeat; transform: none; }
         .top-pill { border-radius: 999px; padding: 7px 12px; display: flex; align-items: center; gap: 8px; font-size: 12px; border: 1px solid; }
-        .top-pill.blue { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+        .top-pill.blue { background: #f0f9ff; color: #0ea5e9; border-color: #bae6fd; }
         .top-pill.green { background: #ecfdf5; color: #16a34a; border-color: #bbf7d0; }
         .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block; }
-        .hero-card { background: linear-gradient(135deg, #ffffff, #eff6ff); border: 1px solid #dbeafe; border-radius: 24px; padding: 22px; margin-bottom: 18px; box-shadow: 0 18px 50px rgba(15,23,42,0.07); }
-        .primary-action { width: 100%; background: linear-gradient(135deg, #2563eb, #38bdf8); color: #ffffff; border-radius: 20px; padding: 18px; display: flex; align-items: center; gap: 16px; border: none; cursor: pointer; margin-bottom: 14px; box-shadow: 0 16px 36px rgba(37,99,235,0.25); transition: all 0.15s ease; }
+        .hero-card { background: linear-gradient(135deg, #ffffff, #f0f9ff); border: 1px solid #bae6fd; border-radius: 24px; padding: 22px; margin-bottom: 18px; box-shadow: 0 18px 50px rgba(15, 23, 42, 0.07); }
+        .primary-action { width: 100%; background: linear-gradient(135deg, #0f172a, #0ea5e9); color: #ffffff; border-radius: 20px; padding: 18px; display: flex; align-items: center; gap: 16px; border: none; cursor: pointer; margin-bottom: 14px; box-shadow: 0 16px 36px rgba(14,165,233,0.25); transition: all 0.15s ease; }
         .primary-action:hover { transform: translateY(-1px); }
-        .secondary-action { width: 100%; background: #ffffff; border-radius: 20px; padding: 18px; display: flex; align-items: center; gap: 16px; border: 1px solid #dbeafe; cursor: pointer; margin-bottom: 18px; box-shadow: 0 10px 28px rgba(15,23,42,0.05); }
+        .secondary-action { width: 100%; background: #ffffff; border-radius: 20px; padding: 18px; display: flex; align-items: center; gap: 16px; border: 1px solid #bae6fd; cursor: pointer; margin-bottom: 18px; box-shadow: 0 10px 28px rgba(15,23,42,0.05); }
         .action-icon { width: 52px; height: 52px; border-radius: 16px; background: rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; }
-        .action-icon.light { background: #eff6ff; color: #2563eb; }
+        .action-icon.light { background: #f0f9ff; color: #0ea5e9; }
         .section-label { color: #64748b; font-size: 11px; font-weight: 900; letter-spacing: 1.6px; text-transform: uppercase; margin: 20px 0 12px; }
-        .back-btn { background: #ffffff; border: 1px solid #dbeafe; border-radius: 12px; padding: 9px 14px; cursor: pointer; font-size: 13px; font-weight: 900; color: #334155; }
-        .view-tv-btn { margin-left: auto; background: #2563eb; border: none; border-radius: 12px; padding: 9px 14px; cursor: pointer; font-size: 13px; font-weight: 900; color: #ffffff; }
-        .panel-header { background: #ffffff; border: 1px solid #dbeafe; border-radius: 22px; padding: 18px; display: flex; align-items: center; gap: 16px; margin-bottom: 18px; box-shadow: 0 12px 34px rgba(15,23,42,0.06); }
+        .back-btn { background: #ffffff; border: 1px solid #bae6fd; border-radius: 12px; padding: 9px 14px; cursor: pointer; font-size: 13px; font-weight: 900; color: #334155; }
+        .view-tv-btn { margin-left: auto; background: #0ea5e9; border: none; border-radius: 12px; padding: 9px 14px; cursor: pointer; font-size: 13px; font-weight: 900; color: #ffffff; }
+        .panel-header { background: #ffffff; border: 1px solid #bae6fd; border-radius: 22px; padding: 18px; display: flex; align-items: center; gap: 16px; margin-bottom: 18px; box-shadow: 0 12px 34px rgba(15,23,42,0.06); }
         .layout-card { background: #ffffff; border-radius: 18px; padding: 12px; border: 1px solid #e2e8f0; cursor: pointer; display: flex; flex-direction: column; align-items: center; box-shadow: 0 8px 24px rgba(15,23,42,0.04); transition: all 0.15s ease; }
-        .layout-card:hover { transform: translateY(-2px); border-color: #bfdbfe; }
-        .layout-card.selected { background: #eff6ff; border-color: #2563eb; box-shadow: 0 16px 34px rgba(37,99,235,0.18); }
+        .layout-card:hover { transform: translateY(-2px); border-color: #bae6fd; }
+        .layout-card.selected { background: #f0f9ff; border-color: #0ea5e9; box-shadow: 0 16px 34px rgba(14,165,233,0.18); }
         .zone-card { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; border: 1px solid #e2e8f0; border-radius: 18px; padding: 8px; background: #ffffff; cursor: pointer; transition: all 0.15s ease; }
-        .zone-card.active { border-color: #2563eb; background: #eff6ff; }
+        .zone-card.active { border-color: #0ea5e9; background: #f0f9ff; }
         .zone-card span { font-size: 11px; color: #64748b; margin-top: 6px; font-weight: 900; }
-        .zone-card.active span { color: #2563eb; }
-        .empty-zone { width: 84px; height: 58px; border-radius: 10px; background: #f1f5f9; border: 1px dashed #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #2563eb; font-weight: 800; }
+        .zone-card.active span { color: #0ea5e9; }
+        .empty-zone { width: 84px; height: 58px; border-radius: 10px; background: #f1f5f9; border: 1px dashed #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #0ea5e9; font-weight: 800; }
         .video-thumb { width: 84px; height: 58px; border-radius: 10px; background: linear-gradient(135deg, #0f172a, #334155); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 12px; font-weight: 900; }
-        .push-info { background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #2563eb; color: #334155; border-radius: 16px; padding: 13px 16px; margin-bottom: 18px; font-size: 14px; }
-        .push-info strong { color: #2563eb; }
-        .upload-box { background: #ffffff; border: 1px solid #dbeafe; border-radius: 22px; padding: 48px 20px; text-align: center; }
+        .push-info { background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0ea5e9; color: #334155; border-radius: 16px; padding: 13px 16px; margin-bottom: 18px; font-size: 14px; }
+        .push-info strong { color: #0ea5e9; }
+        .upload-box { background: #ffffff; border: 1px solid #bae6fd; border-radius: 22px; padding: 48px 20px; text-align: center; }
         .media-action { width: 100%; background: #ffffff; border-radius: 18px; padding: 16px; display: flex; align-items: center; gap: 14px; border: 1px solid #e2e8f0; cursor: pointer; margin-bottom: 12px; transition: all 0.15s ease; }
-        .media-action:hover { transform: translateY(-1px); border-color: #bfdbfe; }
-        .media-badge { min-width: 62px; height: 46px; border-radius: 14px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; border: 1px solid #bfdbfe; }
+        .media-action:hover { transform: translateY(-1px); border-color: #bae6fd; }
+        .media-badge { min-width: 62px; height: 46px; border-radius: 14px; background: #f0f9ff; color: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; border: 1px solid #bae6fd; }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
         .ios-title-card { background: rgba(255,255,255,0.86); border: 1px solid rgba(226,232,240,0.95); border-radius: 28px; padding: 20px; margin-bottom: 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; box-shadow: 0 18px 50px rgba(15,23,42,0.07); backdrop-filter: blur(18px); }
-        .ios-kicker { color: #2563eb; font-size: 11px; font-weight: 900; letter-spacing: 1.6px; text-transform: uppercase; margin-bottom: 5px; }
+        .ios-kicker { color: #0ea5e9; font-size: 11px; font-weight: 900; letter-spacing: 1.6px; text-transform: uppercase; margin-bottom: 5px; }
         .ios-title { color: #0f172a; font-size: 28px; font-weight: 950; letter-spacing: -0.8px; }
         .ios-subtitle { color: #64748b; font-size: 13px; line-height: 1.5; margin-top: 6px; }
         .ios-logout { border: 1px solid #fecaca; background: #fff7f7; color: #ef4444; border-radius: 999px; padding: 8px 14px; font-size: 12px; font-weight: 900; cursor: pointer; white-space: nowrap; }
         .ios-home-hero { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .hero-logout { flex-shrink: 0; }
         .tv-list-grid { display: grid; gap: 12px; }
-        .ios-tv-card { width: 100%; border: 1px solid #e2e8f0; background: rgba(255,255,255,0.9); border-radius: 24px; padding: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; box-shadow: 0 10px 30px rgba(15,23,42,0.05); transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; text-align: left; }
-        .ios-tv-card:hover { transform: translateY(-1px); border-color: #bfdbfe; box-shadow: 0 16px 34px rgba(37,99,235,0.12); }
-        .ios-tv-card.selected { border-color: #2563eb; background: linear-gradient(135deg, #ffffff, #eff6ff); box-shadow: 0 18px 44px rgba(37,99,235,0.18); }
+        .ios-tv-card { width: 100%; border: 1px solid #e2e8f0; background: rgba(255,255,255,0.9); border-radius: 24px; padding: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05); transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; text-align: left; }
+        .ios-tv-card:hover { transform: translateY(-1px); border-color: #bae6fd; box-shadow: 0 16px 34px rgba(14,165,233,0.12); }
+        .ios-tv-card.selected { border-color: #0ea5e9; background: linear-gradient(135deg, #ffffff, #f0f9ff); box-shadow: 0 18px 44px rgba(14,165,233,0.18); }
         .ios-tv-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
         .ios-tv-name { color: #0f172a; font-size: 15px; font-weight: 950; }
         .ios-tv-location { color: #64748b; font-size: 12px; margin-top: 2px; }
         .ios-tv-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
-        .ios-pin { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 999px; padding: 5px 9px; font-size: 11px; font-weight: 900; }
+        .ios-pin { background: #f0f9ff; color: #0ea5e9; border: 1px solid #bae6fd; border-radius: 999px; padding: 5px 9px; font-size: 11px; font-weight: 900; }
         .ios-status { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; border-radius: 999px; padding: 5px 9px; font-size: 10px; font-weight: 900; }
         .ios-status.active { background: #ecfdf5; color: #16a34a; border-color: #bbf7d0; }
 

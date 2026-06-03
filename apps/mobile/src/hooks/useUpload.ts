@@ -47,7 +47,7 @@ export function useUpload(tvId: string, cellIndex: number) {
 
   const upload = async (uri: string, type: 'image' | 'video') => {
     setUploading(true);
-    setProgress('Uploading to AWS S3...');
+    setProgress('Uploading media...');
     try {
       const ext = type === 'video' ? 'mp4' : 'jpg';
       const filename = `${Date.now()}.${ext}`;
@@ -55,7 +55,7 @@ export function useUpload(tvId: string, cellIndex: number) {
 
       const url = await uploadToS3(uri, filename, contentType);
 
-      setProgress('Pushing to TV...');
+      setProgress('Syncing with Screen...');
       await setMedia(tvId, cellIndex, url, type);
 
       setProgress('');

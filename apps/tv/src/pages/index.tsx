@@ -1,6 +1,112 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+
+// Custom SVG Icons to replace emojis
+const IconRadar = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2" />
+  </svg>
+);
+
+const IconCloudRain = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25" />
+    <line x1="8" y1="20" x2="8" y2="22" />
+    <line x1="12" y1="20" x2="12" y2="22" />
+    <line x1="16" y1="20" x2="16" y2="22" />
+  </svg>
+);
+
+const IconBarChart = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <line x1="18" y1="20" x2="18" y2="10" />
+    <line x1="12" y1="20" x2="12" y2="4" />
+    <line x1="6" y1="20" x2="6" y2="14" />
+  </svg>
+);
+
+const IconLayers = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <polygon points="12 2 2 7 12 12 22 7 12 2" />
+    <polyline points="2 17 12 22 22 17" />
+    <polyline points="2 12 12 17 22 12" />
+  </svg>
+);
+
+const IconLobby = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: 'var(--accent-blue)' }}>
+    <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+    <line x1="9" y1="22" x2="9" y2="16" /><line x1="9" y1="16" x2="15" y2="16" /><line x1="15" y1="16" x2="15" y2="22" />
+    <line x1="9" y1="6" x2="9.01" y2="6" /><line x1="15" y1="6" x2="15.01" y2="6" />
+    <line x1="9" y1="11" x2="9.01" y2="11" /><line x1="15" y1="11" x2="15.01" y2="11" />
+  </svg>
+);
+
+const IconHall = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: 'var(--accent-blue)' }}>
+    <path d="M4 22h16M4 20h16M5 20V9M9 20V9M15 20V9M19 20V9M3 9l9-7 9 7" />
+  </svg>
+);
+
+const IconCafeteria = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, color: 'var(--accent-blue)' }}>
+    <path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z" />
+    <line x1="6" y1="1" x2="6" y2="4" /><line x1="10" y1="1" x2="10" y2="4" /><line x1="14" y1="1" x2="14" y2="4" />
+  </svg>
+);
+
+const IconHome = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    <polyline points="9 22 9 12 15 12 15 22" />
+  </svg>
+);
+
+const IconBook = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+  </svg>
+);
+
+const IconLightning = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+  </svg>
+);
+
+const IconUpload = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--accent-blue)', marginBottom: '4px' }}>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+);
+
+const IconDpad = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <rect x="2" y="6" width="20" height="12" rx="3" ry="3" />
+    <line x1="6" y1="12" x2="10" y2="12" /><line x1="8" y1="10" x2="8" y2="14" />
+    <circle cx="16" cy="12" r="1.5" /><circle cx="18.5" cy="12" r="1.5" />
+  </svg>
+);
+
+const IconTV = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+    <line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
+  </svg>
+);
+
+const IconBag = () => (
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <path d="M16 10a4 4 0 0 1-8 0" />
+  </svg>
+);
 
 export default function LandingPage() {
   const [activeLayout, setActiveLayout] = useState<'welcome' | 'menu' | 'promo' | 'upload'>('welcome');
@@ -8,21 +114,23 @@ export default function LandingPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [syncing, setSyncing] = useState(false);
+
+
   
   // Simulator State
-  const [activeTV, setActiveTV] = useState({
+  const [activeTV, setActiveTV] = useState<{ id: string; name: string; location: string; pin: string; icon: React.ReactNode }>({
     id: 'TV1',
-    name: 'TV 1',
+    name: 'Screen 1',
     location: 'Lobby',
     pin: '1111',
-    icon: '🏢'
+    icon: <IconLobby />
   });
 
   const TV_LIST_SIM = [
-    { id: 'TV1', name: 'TV 1', location: 'Lobby', pin: '1111', icon: '🏢' },
-    { id: 'TV2', name: 'TV 2', location: 'Hall A', pin: '2222', icon: '🏛' },
-    { id: 'TV3', name: 'TV 3', location: 'Hall B', pin: '3333', icon: '🏛' },
-    { id: 'TV4', name: 'TV 4', location: 'Cafeteria', pin: '4444', icon: '☕' },
+    { id: 'TV1', name: 'Screen 1', location: 'Lobby', pin: '1111', icon: <IconLobby /> },
+    { id: 'TV2', name: 'Screen 2', location: 'Hall A', pin: '2222', icon: <IconHall /> },
+    { id: 'TV3', name: 'Screen 3', location: 'Hall B', pin: '3333', icon: <IconHall /> },
+    { id: 'TV4', name: 'Screen 4', location: 'Cafeteria', pin: '4444', icon: <IconCafeteria /> },
   ];
 
   function triggerSyncAnimation(newLayout: 'welcome' | 'menu' | 'promo' | 'upload') {
@@ -78,9 +186,9 @@ export default function LandingPage() {
       <div className="landing-body">
         {/* Header Navigation */}
         <header className="landing-header">
-          <Link href="/" className="logo-container">
-            <div className="logo-icon">S</div>
-            <span className="logo-text">Signage Ctrl</span>
+          <Link href="/" className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img src="/logo.png" alt="Signage CTRL Logo" style={{ height: '56px', width: 'auto' }} />
+            <span className="logo-text" style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>Signage Ctrl</span>
           </Link>
           
           <nav aria-label="Main Navigation">
@@ -134,7 +242,7 @@ export default function LandingPage() {
                     
                     <div className="phone-header">
                       <div className="phone-header-title">Signage Ctrl</div>
-                      <div className="phone-header-subtitle">Active: <span id="phone-active-tv">{activeTV.id} ({activeTV.location})</span></div>
+                      <div className="phone-header-subtitle">Active: <span id="phone-active-tv">{activeTV.name} ({activeTV.location})</span></div>
                     </div>
 
                     <div className="phone-content">
@@ -146,28 +254,28 @@ export default function LandingPage() {
                               className={`phone-layout-btn ${activeLayout === 'welcome' ? 'active' : ''}`}
                               onClick={() => triggerSyncAnimation('welcome')}
                             >
-                              <span className="phone-btn-icon">🏠</span>
+                              <span className="phone-btn-icon"><IconHome /></span>
                               <span className="phone-btn-txt">Welcome Board</span>
                             </button>
                             <button 
                               className={`phone-layout-btn ${activeLayout === 'menu' ? 'active' : ''}`}
                               onClick={() => triggerSyncAnimation('menu')}
                             >
-                              <span className="phone-btn-icon">🍔</span>
+                              <span className="phone-btn-icon"><IconBook /></span>
                               <span className="phone-btn-txt">Dinner Specials</span>
                             </button>
                             <button 
                               className={`phone-layout-btn ${activeLayout === 'promo' ? 'active' : ''}`}
                               onClick={() => triggerSyncAnimation('promo')}
                             >
-                              <span className="phone-btn-icon">⚡</span>
+                              <span className="phone-btn-icon"><IconLightning /></span>
                               <span className="phone-btn-txt">Flash Sale Ads</span>
                             </button>
                           </div>
 
                           <span className="phone-section-title" style={{ marginTop: '8px' }}>Upload Media</span>
                           <div className="phone-upload-box" onClick={handleUploadSimulation}>
-                            <div className="phone-upload-icon">📤</div>
+                            <div className="phone-upload-icon"><IconUpload /></div>
                             <div className="phone-upload-text">Simulate File Upload</div>
                             <div className="phone-upload-sub">Upload image / video files</div>
                             {/* Simulated loader */}
@@ -175,6 +283,7 @@ export default function LandingPage() {
                               <div className="phone-progress-fill" style={{ width: `${uploadProgress}%` }}></div>
                             </div>
                           </div>
+
                         </>
                       ) : (
                         <>
@@ -194,7 +303,7 @@ export default function LandingPage() {
                                     <span style={{ fontSize: '0.65rem', color: '#86868b' }}>{tv.location}</span>
                                   </div>
                                 </div>
-                                <span style={{ fontSize: '0.7rem', background: '#f5f5f7', padding: '3px 6px', borderRadius: '4px', color: '#0071e3', fontWeight: 'bold' }}>PIN {tv.pin}</span>
+                                <span style={{ fontSize: '0.7rem', background: '#f5f5f7', padding: '3px 6px', borderRadius: '4px', color: 'var(--accent-blue)', fontWeight: 'bold' }}>PIN {tv.pin}</span>
                               </button>
                             ))}
                           </div>
@@ -204,11 +313,11 @@ export default function LandingPage() {
 
                     <div className="phone-bottom-nav" aria-hidden="true">
                       <div className={`phone-nav-item ${phoneTab === 'controller' ? 'active' : ''}`} onClick={() => setPhoneTab('controller')}>
-                        <span className="phone-nav-icon">🎮</span>
+                        <span className="phone-nav-icon"><IconDpad /></span>
                         <span>Controller</span>
                       </div>
                       <div className={`phone-nav-item ${phoneTab === 'tvs' ? 'active' : ''}`} onClick={() => setPhoneTab('tvs')}>
-                        <span className="phone-nav-icon">📺</span>
+                        <span className="phone-nav-icon"><IconTV /></span>
                         <span>TVs List</span>
                       </div>
                     </div>
@@ -238,7 +347,7 @@ export default function LandingPage() {
                         
                         {/* Welcome Slide Layout */}
                         <div className={`tv-slide slide-welcome ${activeLayout === 'welcome' ? 'active' : ''}`}>
-                          <div className="welcome-logo">S</div>
+                          <img src="/logo.png" alt="Signage CTRL Logo" className="welcome-logo-img" style={{ height: '120px', width: 'auto', marginBottom: '20px', objectFit: 'contain' }} />
                           <h3 className="welcome-heading">Welcome to Signage Ctrl</h3>
                           <p className="welcome-sub">Use the smartphone controller to update the contents of this display in real-time.</p>
                         </div>
@@ -280,7 +389,7 @@ export default function LandingPage() {
                             <p className="promo-desc">Flash Sale active across all participating outlet chains.</p>
                           </div>
                           <div className="promo-graphic-col">
-                            <div className="promo-circle-glow">🛍️</div>
+                            <div className="promo-circle-glow"><IconBag /></div>
                           </div>
                         </div>
 
@@ -289,6 +398,7 @@ export default function LandingPage() {
                           {/* Simulated upload placeholder image */}
                           <img src="data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' width%3D'640' height%3D'360' viewBox%3D'0 0 640 360'%3E%3Crect width%3D'100%25' height%3D'100%25' fill%3D'%23e8f2ff'%2F%3E%3Ctext x%3D'50%25' y%3D'50%25' font-family%3D'sans-serif' font-size%3D'20' font-weight%3D'bold' fill%3D'%230071e3' text-anchor%3D'middle' alignment-baseline%3D'middle'%3EIMAGE UPLOAD SIMULATED SUCCESS%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Simulated Upload" className="uploaded-image-display" />
                         </div>
+
 
                       </div>
                     </Link>
@@ -349,9 +459,9 @@ export default function LandingPage() {
 
         {/* Footer */}
         <footer className="landing-footer">
-          <div className="footer-logo">
-            <div className="logo-icon">S</div>
-            <span className="logo-text">Signage Ctrl</span>
+          <div className="footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img src="/logo.png" alt="Signage CTRL Logo" style={{ height: '44px', width: 'auto' }} />
+            <span className="logo-text" style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>Signage Ctrl</span>
           </div>
           
           <nav className="footer-nav" aria-label="Footer Links">
