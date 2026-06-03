@@ -195,6 +195,7 @@ export default function LandingPage() {
             <ul className="nav-links">
               <li><a href="#how-it-works">How It Works</a></li>
               <li><a href="#how-to-use">How to Use</a></li>
+              <li><Link href="/marketing" style={{ fontWeight: 700, color: 'var(--accent-blue)' }}>Marketing Agency</Link></li>
             </ul>
           </nav>
 
@@ -455,6 +456,22 @@ export default function LandingPage() {
               </div>
             </div>
           </section>
+
+          {/* Digital Marketing Agency Promotion Banner */}
+          <section style={{ background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%)', border: '1px solid var(--border-light)', borderRadius: '28px', padding: '40px', marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '30px', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: '280px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-blue)', textTransform: 'uppercase', letterSpacing: '1px' }}>Full-Service Growth Partner</span>
+              <h3 style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-0.8px', color: 'var(--text-primary)', lineHeight: 1.2 }}>Want to double your foot traffic & store sales?</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.5, maxWidth: '700px' }}>
+                Our digital signage is free, but we also run targeted local advertising, Google Maps SEO, in-store loyalty campaigns, and high-converting screen designs.
+              </p>
+            </div>
+            <div>
+              <Link href="/marketing" className="btn btn-primary" style={{ padding: '14px 30px', borderRadius: '30px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                Explore Marketing Services &rarr;
+              </Link>
+            </div>
+          </section>
         </main>
 
         {/* Footer */}
@@ -467,6 +484,7 @@ export default function LandingPage() {
           <nav className="footer-nav" aria-label="Footer Links">
             <a href="#how-it-works">How It Works</a>
             <a href="#how-to-use">How to Use</a>
+            <Link href="/marketing">Marketing Agency</Link>
             <Link href="/app">Launch App</Link>
           </nav>
           
