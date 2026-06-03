@@ -208,9 +208,93 @@ export default function PhonePage() {
   const [notification, setNotification] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // AI Image Generator States
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [generatingImage, setGeneratingImage] = useState(false);
+  const [aiImageResult, setAiImageResult] = useState<string | null>(null);
+
+  // RAG Chatbot States
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([
+    { role: 'assistant', content: 'Hello! I am your Signage Ctrl Assistant. Ask me how to pair your TV, change layouts, upload media, or troubleshoot problems!' }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [sendingChat, setSendingChat] = useState(false);
+
   const notify = (msg: string) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3000);
+  };
+
+  const generateAIImage = async () => {
+    if (!aiPrompt) return;
+    setGeneratingImage(true);
+    setAiImageResult(null);
+    try {
+      const res = await fetch('/api/ai-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: aiPrompt })
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setAiImageResult(data.url);
+        notify('Success: Image generated!');
+      } else {
+        notify(data.error || 'Failed to generate image');
+      }
+    } catch (err) {
+      console.error(err);
+      notify('Failed to generate image');
+    } finally {
+      setGeneratingImage(false);
+    }
+  };
+
+  const pushGeneratedImage = async () => {
+    if (!aiImageResult || !selectedTV || !selectedLayoutId) return;
+    setUploading(true);
+    try {
+      const newCells = cells.map((c, i) => i === activeCell ? { mediaUrl: aiImageResult, mediaType: 'image' } : c);
+      setCells(newCells);
+      await pushToTV(selectedLayoutId, newCells);
+      notify(`Success: AI image pushed to ${selectedTV.name}`);
+      setAiImageResult(null);
+      setAiPrompt('');
+    } catch {
+      notify('Failed to push image');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const sendChatMessage = async (overrideInput?: string) => {
+    const textToSend = overrideInput || chatInput;
+    if (!textToSend.trim()) return;
+
+    const newMessages = [...chatMessages, { role: 'user' as const, content: textToSend }];
+    setChatMessages(newMessages);
+    setChatInput('');
+    setSendingChat(true);
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: newMessages })
+      });
+      const data = await res.json();
+      if (res.ok && data.reply) {
+        setChatMessages([...newMessages, { role: 'assistant' as const, content: data.reply }]);
+      } else {
+        setChatMessages([...newMessages, { role: 'assistant' as const, content: data.error || 'Sorry, I encountered an error. Please try again.' }]);
+      }
+    } catch (err) {
+      console.error(err);
+      setChatMessages([...newMessages, { role: 'assistant' as const, content: 'Sorry, I could not connect to the assistant server.' }]);
+    } finally {
+      setSendingChat(false);
+    }
   };
 
   // Poll TV state in real-time
@@ -573,7 +657,6 @@ export default function PhonePage() {
             <div style={{ background: 'rgba(14, 165, 233, 0.1)', borderRadius: 10, padding: '10px 14px', marginBottom: 16, borderLeft: '3px solid #0ea5e9' }}>
               <span style={{ color: '#334155', fontSize: 12 }}>Pushing to: <strong style={{ color: '#0ea5e9' }}>{selectedTV.name} — Zone {activeCell + 1}</strong></span>
             </div>
-
             {/* Upload */}
             {uploading ? (
               <div style={{ textAlign: 'center', padding: 40 }}>
@@ -597,8 +680,195 @@ export default function PhonePage() {
                     <IconChevronRight size={20} style={{ color: '#94a3b8' }} />
                   </button>
                 ))}
+
+                <div style={{ color: '#64748b', fontSize: 11, fontWeight: 700, letterSpacing: 1.5, marginTop: 20, marginBottom: 10 }}>GENERATE AI IMAGE FOR ZONE {activeCell + 1}</div>
+                
+                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 16, boxShadow: '0 2px 8px rgba(15,23,42,0.04)', marginBottom: 20 }}>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                    <input 
+                      value={aiPrompt} 
+                      onChange={e => setAiPrompt(e.target.value)}
+                      placeholder="Describe what to show (e.g. delicious pizza)..." 
+                      style={{ flex: 1, padding: '10px 14px', background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: 10, fontSize: 13, outline: 'none', color: '#0f172a' }} 
+                    />
+                    <button 
+                      onClick={generateAIImage} 
+                      disabled={generatingImage || !aiPrompt}
+                      style={{ padding: '10px 16px', background: '#0ea5e9', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}
+                    >
+                      {generatingImage ? '...' : 'Generate'}
+                    </button>
+                  </div>
+                  
+                  {generatingImage && (
+                    <div style={{ padding: '20px 0', textAlign: 'center', color: '#64748b', fontSize: 12 }}>
+                      Generating image using Imagen 3...
+                    </div>
+                  )}
+
+                  {aiImageResult && !generatingImage && (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginTop: 8 }}>
+                      <img src={aiImageResult} style={{ width: '100%', borderRadius: 10, border: '1px solid #e2e8f0' }} alt="AI Generated" />
+                      <button 
+                        onClick={pushGeneratedImage}
+                        style={{ width: '100%', padding: '10px', background: '#10b981', color: '#fff', border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 13 }}
+                      >
+                        Push Generated Image to TV
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+      {/* Floating AI Chatbot Button */}
+      <button 
+        onClick={() => setChatOpen(true)}
+        style={{
+          position: 'fixed',
+          right: 16,
+          bottom: 16,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          background: '#0ea5e9',
+          color: '#fff',
+          border: 'none',
+          boxShadow: '0 4px 16px rgba(14,165,233,0.4)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 999,
+          transition: 'transform 0.15s ease',
+        }}
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+      </button>
+
+      {/* Chatbot Drawer */}
+      {chatOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15,23,42,0.4)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 1000,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'flex-end',
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: 430,
+            height: '75%',
+            background: '#fff',
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 -4px 30px rgba(15,23,42,0.15)',
+          }}>
+            {/* Header */}
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0f172a', borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981' }} />
+                <span style={{ color: '#fff', fontWeight: 800, fontSize: 14 }}>Signage Ctrl AI Assistant</span>
+              </div>
+              <button 
+                onClick={() => setChatOpen(false)}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 20, cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Chat Messages */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {chatMessages.map((msg, i) => {
+                const isUser = msg.role === 'user';
+                return (
+                  <div key={i} style={{
+                    display: 'flex',
+                    justifyContent: isUser ? 'flex-end' : 'flex-start',
+                  }}>
+                    <div style={{
+                      maxWidth: '85%',
+                      padding: '10px 14px',
+                      borderRadius: 14,
+                      fontSize: 13,
+                      lineHeight: 1.4,
+                      background: isUser ? '#0ea5e9' : '#f1f5f9',
+                      color: isUser ? '#fff' : '#0f172a',
+                      borderBottomRightRadius: isUser ? 2 : 14,
+                      borderBottomLeftRadius: isUser ? 14 : 2,
+                      whiteSpace: 'pre-line'
+                    }}>
+                      {msg.content}
+                    </div>
+                  </div>
+                );
+              })}
+              {sendingChat && (
+                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                  <div style={{ padding: '10px 14px', borderRadius: 14, background: '#f1f5f9', color: '#64748b', fontSize: 13, borderBottomLeftRadius: 2 }}>
+                    Thinking...
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Suggestions */}
+            <div style={{ padding: '10px 20px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: 6, overflowX: 'auto', background: '#f8fafc' }}>
+              {[
+                { label: 'Pair TV?', q: 'How do I pair my TV with my phone remote?' },
+                { label: 'Change Layout?', q: 'How can I change the layout of a TV screen?' },
+                { label: 'Troubleshoot', q: 'My TV is not updating, how do I troubleshoot?' }
+              ].map((sug) => (
+                <button 
+                  key={sug.label}
+                  onClick={() => sendChatMessage(sug.q)}
+                  style={{
+                    flexShrink: 0,
+                    padding: '6px 12px',
+                    borderRadius: 15,
+                    border: '1px solid #cbd5e1',
+                    background: '#fff',
+                    color: '#475569',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {sug.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Input area */}
+            <div style={{ padding: '16px 20px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: 10, background: '#fff' }}>
+              <input 
+                value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && sendChatMessage()}
+                placeholder="Ask how to use the app..."
+                style={{ flex: 1, padding: '10px 14px', border: '1.5px solid #cbd5e1', borderRadius: 10, fontSize: 13, outline: 'none', color: '#0f172a' }}
+              />
+              <button 
+                onClick={() => sendChatMessage()}
+                disabled={sendingChat || !chatInput.trim()}
+                style={{ padding: '10px 16px', background: '#0ea5e9', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
+              >
+                Send
+              </button>
+            </div>
           </div>
         </div>
       )}
