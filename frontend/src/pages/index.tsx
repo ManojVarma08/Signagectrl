@@ -181,6 +181,9 @@ export default function LandingPage() {
       <Head>
         <title>Signage Ctrl - Smart Cloud Digital Signage Platform</title>
         <meta name="description" content="A simple digital signage platform to control multiple TVs from a phone or browser. Sync displays in real-time using secure TV PINs and accounts." />
+        <link rel="icon" href="/favicon.png" type="image/png" sizes="any" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="apple-touch-icon" href="/logo.png" />
       </Head>
 
       <div className="landing-body">

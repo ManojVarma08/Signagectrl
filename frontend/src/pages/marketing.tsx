@@ -10,6 +10,9 @@ export default function MarketingPage() {
         <title>Digital Marketing & Sales Growth Solutions | Signage Ctrl Agency</title>
         <meta name="description" content="Explode your sales and foot traffic with professional digital marketing, local SEO, PPC advertising, and optimized digital signage layouts. Request a free consultation." />
         <meta name="keywords" content="digital marketing agency, local SEO, sales growth, signage marketing, retail marketing, restaurant marketing, lead generation, conversion rate optimization" />
+        <link rel="icon" href="/favicon.png" type="image/png" sizes="any" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="apple-touch-icon" href="/logo.png" />
       </Head>
 
       <div className="landing-body">
